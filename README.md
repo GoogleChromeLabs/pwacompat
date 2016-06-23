@@ -1,7 +1,6 @@
 Progressr is a drop-in JS companion library to [Always Be Progressive](https://samthor.github.io/AlwaysBeProgressive/).
 
 This library takes a modern website with (but not limited to) a `manifest.json` file and, where possible, provides support to non-standard browsers such as Safari on iOS and UC Browser.
-[Show me a sample!](https://samthor.github.io/TODO)
 
 # Requirements
 
@@ -32,7 +31,7 @@ You can either drop-in the `progressr.min.js` script into your page directly to 
 
 ## Drop-In Script
 
-Add this script tag at the bottom of your page-
+Add this script tag anywhere after your manifest file is included, e.g., at the bottom of your page-
 
 ```html
 <script src="https://example.com/TODO/progressr.min.js"></script>
