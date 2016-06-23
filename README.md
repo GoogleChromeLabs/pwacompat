@@ -1,4 +1,4 @@
-Progressr is a drop-in JS companion library to [Always Be Progressive](https://samthor.github.io/AlwaysBeProgressive/).
+pwacompat is a drop-in JS companion library to [Always Be Progressive](https://samthor.github.io/AlwaysBeProgressive/).
 
 This library takes a modern website with (but not limited to) a `manifest.json` file and, where possible, provides support to non-standard browsers such as Safari on iOS and UC Browser.
 
@@ -27,14 +27,14 @@ For more information on Web App Manifest, and how e.g., modern browsers will pro
 
 # Usage
 
-You can either drop-in the `progressr.min.js` script into your page directly to get its benefits, or use `gulp build` to build custom JS just for your site.
+You can either drop-in the `pwacompat.min.js` script into your page directly to get its benefits, or use `gulp build` to build custom JS just for your site.
 
 ## Drop-In Script
 
 Add this script tag anywhere after your manifest file is included, e.g., at the bottom of your page-
 
 ```html
-<script src="https://example.com/TODO/progressr.min.js"></script>
+<script src="https://example.com/TODO/pwacompat.min.js"></script>
 ```
 
 ## Custom Build
