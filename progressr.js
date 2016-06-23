@@ -124,9 +124,7 @@
       }
     });
 
-    if (sessionStorage['loaded']) {
-      return;  // already done
-    }
+    if (sessionStorage['loaded']) { return; }
     sessionStorage['loaded'] = true;
 
     const startUrl = localStorage[storageKey + ':out'] || manifest['start_url'];
