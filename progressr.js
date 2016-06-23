@@ -88,7 +88,7 @@
     createMeta('msapplication-TileColor', manifest['theme_color']);
     createMeta('theme-color', manifest['theme_color']);
 
-    // TODO: decide on the right value for this (black-translucent is great, but overkill)
+    // TODO(samthor): decide on the right value for this (black-translucent is great, but overkill)
 //    createMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
 
     // Parse the icons.
