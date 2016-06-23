@@ -88,6 +88,23 @@
     createMeta('msapplication-TileColor', manifest['theme_color']);
     createMeta('theme-color', manifest['theme_color']);
 
+    let itunes;
+    (manifest['related_applications'] || [])
+        .filter(app => app['platform'] == 'itunes')
+        .forEach(app => {
+          if (app['id']) {
+            itunes = app['id'];
+          } else {
+            const match = app['url'].match(/id(\d+)/);
+            if (match) {
+              itunes = match[1];
+            }
+          }
+        });
+    if (itunes) {
+      createMeta('apple-itunes-app', `app-id=${itunes}`)
+    }
+
     // TODO(samthor): decide on the right value for this (black-translucent is great, but overkill)
 //    createMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
 
