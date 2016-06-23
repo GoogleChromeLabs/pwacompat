@@ -132,7 +132,6 @@
     const startUrl = localStorage[storageKey + ':out'] || manifest['start_url'];
     delete localStorage[storageKey + ':out'];
     const ours = window.location.href + window.location.search;
-    alert('got startUrl: ' + startUrl + ', vs ours: ' + ours);
     if (!startUrl || startUrl == ours) {
       return;  // no start_url or return url available
     }
