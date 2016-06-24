@@ -122,7 +122,7 @@
       const linkedUrl = new URL(ev.target.href);  // computes target domain/origin for us
       if (linkedUrl.origin !== location.origin) {
         // do nothing, this will open in a new tab
-        localStorage[storageKey + ':out'] = location.href;
+        window.localStorage[storageKey + ':out'] = location.href;
       } else {
         // local navigation, prevent page load
         ev.preventDefault();
@@ -133,8 +133,8 @@
     if (sessionStorage['loaded']) { return; }
     sessionStorage['loaded'] = true;
 
-    const startUrl = localStorage[storageKey + ':out'] || manifest['start_url'];
-    delete localStorage[storageKey + ':out'];
+    const startUrl = window.localStorage[storageKey + ':out'] || manifest['start_url'];
+    delete window.localStorage[storageKey + ':out'];
     const ours = window.location.href + window.location.search;
     if (!startUrl || startUrl == ours) {
       return;  // no start_url or return url available
