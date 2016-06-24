@@ -17,7 +17,8 @@
 'use strict';
 
 (function() {
-  if (navigator.serviceWorker) { return; }
+  // we have serviceWorker, or no localStorage (not supported, or in private mode): fail out
+  if (navigator.serviceWorker || !window.localStorage) { return; }
 
   const storageKey = 'progressr.js';
   const manifestEl = document.head.querySelector('link[rel="manifest"]');
