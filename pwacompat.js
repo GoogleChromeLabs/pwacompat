@@ -17,6 +17,8 @@
 'use strict';
 
 (function() {
+  if (navigator.serviceWorker) { return; }
+
   const storageKey = 'progressr.js';
   const manifestEl = document.head.querySelector('link[rel="manifest"]');
   if (!manifestEl || !manifestEl.href) {
@@ -24,37 +26,26 @@
     return;  // no manifest
   }
 
-  // TODO(samthor): Only do any of this if we're not already supported.
+  fetchManifest(processManifest, navigator['standalone']);
 
-  fetchManifest(processManifest);
-
-  function fetchManifest(callback) {
-    const now = new Date();
-    let manifest = {};
-    let payload;
-    try {
-      payload = JSON.parse(window.localStorage[storageKey]);
-    } catch (e) {
-      // ignore
-    }
-    if (payload) {
-      // TODO(samthor): Timeout localStorage version.
-      // Avoid performing an XHR if possible.
-      const manifest = payload['manifest'];
-      console.debug('got manifest from localStorage', manifest);
-      manifest && callback(manifest);
-      return;
+  function fetchManifest(callback, preferSkip) {
+    if (preferSkip) {  // avoid performing XHR
+      let manifest;
+      try {
+        manifest = JSON.parse(window.localStorage[storageKey]);
+      } catch (e) {
+        // ignore
+      }
+      if (manifest) {
+        callback(manifest);
+        return;
+      }
     }
     const xhr = new XMLHttpRequest();
     xhr.onload = () => {
-      manifest = JSON.parse(xhr.responseText);
-      console.debug('got manifest from http', manifest);
-      const payload = JSON.stringify({
-        'when': now,
-        'manifest': manifest,
-      });
+      const manifest = JSON.parse(xhr.responseText);
       try {
-        window.localStorage[storageKey] = payload;
+        window.localStorage[storageKey] = xhr.responseText;
       } catch (e) {
         // can't save, maybe out of space or private mode, ignore
       }
@@ -70,13 +61,10 @@
      * @param {string|boolean|null} value
      */
     function createMeta(name, value) {
-      if (value === undefined || value === null || value === "") { return; }
+      if (!value) { return; }
       const tag = document.createElement('meta');
       tag.setAttribute('name', name);
-      if (typeof value == 'boolean') {
-        value = value ? 'yes' : 'no';
-      }
-      tag.setAttribute('content', value);
+      tag.setAttribute('content', value === true ? 'yes' : value);
       document.head.appendChild(tag);
     }
 
@@ -105,11 +93,12 @@
       createMeta('apple-itunes-app', `app-id=${itunes}`)
     }
 
-    // TODO(samthor): decide on the right value for this (black-translucent is great, but overkill)
-//    createMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
+    // nb. this doesn't set 'apple-mobile-web-app-status-bar-style', as using 'black-translucent'
+    // moves the page up behind the status bar.
+    // TODO(samthor): Use white for a bright theme-color, black for a dark one.
 
     // Parse the icons.
-    const icons = manifest["icons"] || [];
+    const icons = manifest['icons'] || [];
     icons.sort((a, b) => {
       // sort larger first
       return parseInt(b.sizes, 10) - parseInt(a.sizes, 10);
