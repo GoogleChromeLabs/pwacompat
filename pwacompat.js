@@ -20,10 +20,10 @@
   // we have serviceWorker, or no localStorage (not supported, or in private mode): fail out
   if (navigator.serviceWorker || !window.localStorage) { return; }
 
-  const storageKey = 'progressr.js';
+  const storageKey = 'pwacompat.js';
   const manifestEl = document.head.querySelector('link[rel="manifest"]');
   if (!manifestEl || !manifestEl.href) {
-    console.warn('progressr.js can\'t operate: no <link rel="manifest" ... /> found');
+    console.warn('pwacompat.js can\'t operate: no <link rel="manifest" ... /> found');
     return;  // no manifest
   }
 
