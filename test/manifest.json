@@ -12,7 +12,7 @@
   ],
   "display": "fullscreen",
   "scope": "/",
-  "start_url": "/?homescreen=true",
+  "start_url": "?homescreen=true",
   "orientation": "portrait",
   "theme_color": "#f44b28",
   "background_color": "#fff",
