@@ -75,7 +75,12 @@
     createMeta('apple-mobile-web-app-title', manifest['short_name'] || manifest['name']);
     createMeta('msapplication-starturl', manifest['start_url'] || '/');
     createMeta('msapplication-TileColor', manifest['theme_color']);
-    createMeta('theme-color', manifest['theme_color']);
+
+    /*
+     * nb. pwacompat does _not_ create the meta 'theme-color', as browsers that support the manifest
+     * file don't use its 'theme_color' when the webpage is just loaded in a normal browser (as of
+     * July 2016). So be sure to set it yourself.
+     */
 
     let itunes;
     (manifest['related_applications'] || [])
