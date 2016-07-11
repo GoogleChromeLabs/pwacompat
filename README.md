@@ -1,5 +1,5 @@
 pwacompat is a drop-in JS companion library to help your modern website be more progressive.
-This takes a `manifest.json` file and, where possible, provides support to non-standard browsers such as Safari on iOS and UC Browser.
+This takes a `manifest.json` file and, where possible, provides support to non-standard browsers such as Safari on iOS.
 
 # Usage
 
@@ -9,6 +9,18 @@ Add this script tag anywhere after your manifest file is included, e.g., at the 
 ```html
 <script src="https://example.com/TODO/pwacompat.min.js"></script>
 ```
+
+**Warning!** Don't use the `pwacompat.js` file directly, as it's written in ES6, which can't be run  natively in most browsers.
+
+# Details
+
+pwacompat performs a few main tasks-
+
+* Creates fallback meta tags for older devices (e.g., iOS, older WebKit/Chromium forks etc)
+* Creates meta icon tags for all icons in the manifest
+* For webapps added to an [iOS homescreen](https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html#//apple_ref/doc/uid/TP40002051-CH3-SW2)-
+  * Ensures your webapp always starts at your `start_url`
+  * Fixes internal navigation so users stay within the webapp
 
 # Requirements
 
@@ -27,7 +39,11 @@ And the `manifest.json` file itself should look a bit like-
   "short_name": "Progressive!",
   "display": "browser",
   "start_url": "/",
-  "background_color": "#102a48"
+  "background_color": "#102a48",
+  "icons": [
+    "src": "res/icon-128.png",
+    "sizes": "128x128"
+  ]
 }
 ```
 
@@ -36,4 +52,17 @@ To learn about how to be more progressive with your features, supporting all you
 
 ## Browsers
 
-This is supported in all modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+).
+This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+).
+
+# Release
+
+Compile code with [Closure Compiler](https://closure-compiler.appspot.com/home).
+
+```
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @output_file_name pwacompat.min.js
+// ==/ClosureCompiler==
+
+// code here
+```
