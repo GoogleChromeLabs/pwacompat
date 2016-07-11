@@ -63,6 +63,7 @@
      */
     function createMeta(name, value) {
       if (!value) { return; }
+      if (document.querySelector(`meta[name="${name}"]`)) { return; }
       const tag = document.createElement('meta');
       tag.setAttribute('name', name);
       tag.setAttribute('content', value === true ? 'yes' : value);
