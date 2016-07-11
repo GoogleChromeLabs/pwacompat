@@ -7,7 +7,7 @@ Drop-in the `pwacompat.min.js` script into your page directly to get its benefit
 Add this script tag anywhere after your manifest file is included, e.g., at the bottom of your page-
 
 ```html
-<script src="https://example.com/TODO/pwacompat.min.js"></script>
+<script src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v1.0.0/pwacompat.min.js"></script>
 ```
 
 **Warning!** Don't use the `pwacompat.js` file directly, as it's written in ES6, which can't be run  natively in most browsers.
