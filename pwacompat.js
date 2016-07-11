@@ -118,12 +118,15 @@
       document.head.appendChild(iconEl);
     });
 
+    // If this is a standalone iOS ATHS app, perform setup actions.
     if (navigator['standalone']) {
       iosStandalone(manifest);
     }
   }
 
   function iosStandalone(manifest) {
+    // Intercept clicks, and if they're on the same domain, keep them in the window by updating
+    // the location rather than following the link proper.
     document.addEventListener('click', ev => {
       if (ev.target.tagName !== 'A') { return; }
       const linkedUrl = new URL(ev.target.href);  // computes target domain/origin for us
@@ -137,21 +140,19 @@
       }
     });
 
-    if (sessionStorage['loaded']) { return; }
-    sessionStorage['loaded'] = true;
+    if (!window.sessionStorage || window.sessionStorage['loaded']) { return; }
+    window.sessionStorage['loaded'] = true;
 
+    // If this is the first page load, load 'start_url' from the manifest file.
     const startUrl = window.localStorage[storageKey + ':out'] || manifest['start_url'];
     delete window.localStorage[storageKey + ':out'];
     const ours = window.location.href + window.location.search;
     if (!startUrl || startUrl == ours) {
-      return;  // no start_url or return url available
-    }
-
-    if (startUrl.replace(/#.*$/, '') == ours) {
+      // no start_url or return url available
+    } else if (startUrl.replace(/#.*$/, '') == ours) {
       window.location.hash = startUrl.substr(startUrl.indexOf('#'));  // same, different hash
     } else {
       window.location = startUrl;
-      throw new Error('stop, changed url');  // should never get here
     }
   }
 
