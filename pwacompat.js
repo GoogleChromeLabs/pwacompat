@@ -112,10 +112,14 @@
     });
     icons.forEach(icon => {
       const iconEl = document.createElement('link');
-      iconEl.setAttribute('rel', 'apple-touch-icon');
+      iconEl.setAttribute('rel', 'icon');
       iconEl.setAttribute('href', icon.src);
       iconEl.setAttribute('sizes', icon.sizes);
       document.head.appendChild(iconEl);
+
+      const appleIconEl = iconEl.cloneNode(true);
+      appleIconEl.setAttribute('rel', 'apple-touch-icon');
+      document.head.appendChild(appleIconEl);
     });
 
     // If this is a standalone iOS ATHS app, perform setup actions.
