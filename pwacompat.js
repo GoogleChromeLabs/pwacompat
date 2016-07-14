@@ -57,69 +57,13 @@
   }
 
   function processManifest(manifest) {
-    /**
-     * @param {string} name
-     * @param {string|boolean|null} value
-     */
-    function createMeta(name, value) {
-      if (!value) { return; }
-      if (document.querySelector(`meta[name="${name}"]`)) { return; }
-      const tag = document.createElement('meta');
-      tag.setAttribute('name', name);
-      tag.setAttribute('content', value === true ? 'yes' : value);
-      document.head.appendChild(tag);
-    }
-
-    const capable = ['standalone', 'fullscreen'].indexOf(manifest['display']) !== -1;
-    createMeta('apple-mobile-web-app-capable', capable);
-    createMeta('mobile-web-app-capable', capable);
-    createMeta('apple-mobile-web-app-title', manifest['short_name'] || manifest['name']);
-    createMeta('msapplication-starturl', manifest['start_url'] || '/');
-    createMeta('msapplication-TileColor', manifest['theme_color']);
-
-    /*
-     * nb. pwacompat does _not_ create the meta 'theme-color', as browsers that support the manifest
-     * file don't use its 'theme_color' when the webpage is just loaded in a normal browser (as of
-     * July 2016). So be sure to set it yourself.
-     */
-
-    let itunes;
-    (manifest['related_applications'] || [])
-        .filter(app => app['platform'] == 'itunes')
-        .forEach(app => {
-          if (app['id']) {
-            itunes = app['id'];
-          } else {
-            const match = app['url'].match(/id(\d+)/);
-            if (match) {
-              itunes = match[1];
-            }
-          }
-        });
-    if (itunes) {
-      createMeta('apple-itunes-app', `app-id=${itunes}`)
-    }
-
-    // nb. this doesn't set 'apple-mobile-web-app-status-bar-style', as using 'black-translucent'
-    // moves the page up behind the status bar.
-    // TODO(samthor): Use white for a bright theme-color, black for a dark one.
-
-    // Parse the icons.
-    const icons = manifest['icons'] || [];
-    icons.sort((a, b) => {
-      // sort larger first
-      return parseInt(b.sizes, 10) - parseInt(a.sizes, 10);
-    });
-    icons.forEach(icon => {
-      const iconEl = document.createElement('link');
-      iconEl.setAttribute('rel', 'icon');
-      iconEl.setAttribute('href', icon.src);
-      iconEl.setAttribute('sizes', icon.sizes);
-      document.head.appendChild(iconEl);
-
-      const appleIconEl = iconEl.cloneNode(true);
-      appleIconEl.setAttribute('rel', 'apple-touch-icon');
-      document.head.appendChild(appleIconEl);
+    const parse = require('./lib');
+    parse(manifest).forEach(tag => {
+      const node = document.createElement(tag.name);
+      for (const k in tag.attr) {
+        node.setAttribute(k, tag.attr[k]);
+      }
+      document.head.appendChild(node);
     });
 
     // If this is a standalone iOS ATHS app, perform setup actions.

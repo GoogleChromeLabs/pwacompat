@@ -1,8 +1,8 @@
 {
   "name": "pwacompat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "library to bring Web App Manifest files to older browsers",
-  "main": "pwacompat.min.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GoogleChrome/pwacompat.git"
@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/GoogleChrome/pwacompat/issues"
   },
-  "homepage": "https://github.com/GoogleChrome/pwacompat"
+  "homepage": "https://github.com/GoogleChrome/pwacompat",
+  "dependencies": {
+    "escape-html": "^1.0.3"
+  }
 }
