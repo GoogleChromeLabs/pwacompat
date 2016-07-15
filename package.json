@@ -1,6 +1,6 @@
 {
   "name": "pwacompat",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "library to bring Web App Manifest files to older browsers",
   "main": "index.js",
   "repository": {
