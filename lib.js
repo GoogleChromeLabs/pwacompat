@@ -72,7 +72,7 @@ function parse(manifest) {
   });
   icons.forEach(icon => {
     out.push({
-      name: 'icon',
+      name: 'link',
       attr: {
         'rel': 'icon',
         'href': icon.src,
@@ -80,7 +80,7 @@ function parse(manifest) {
       },
     });
     out.push({
-      name: 'icon',
+      name: 'link',
       attr: {
         'rel': 'apple-touch-icon',
         'href': icon.src,
