@@ -50,7 +50,7 @@ The drop-in version also provides JS that enhances webapps added to an [iOS home
 
 # Web App Manifest
 
-Your Web App Manifest is normally named `manifest.json`, live at `/manifest.json`, and should look a bit like this-
+Your Web App Manifest is normally named `manifest.json`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest/manifest.json" />`, and should look a bit like this-
 
 ```js
 {
