@@ -71,7 +71,7 @@ To learn about how to be more progressive with your features, supporting all you
 
 ## License
 
-Copyright 2015 Google, Inc.
+Copyright 2016 Google, Inc.
 
 Licensed under the [Apache License, Version 2.0](LICENSE) (the "License");
 you may not use this file except in compliance with the License. You may
