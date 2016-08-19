@@ -68,3 +68,19 @@ Your Web App Manifest is normally named `manifest.json`, is referenced from all 
 
 For more information on Web App Manifest, and how e.g., modern browsers will prompt engaged users to install your site to their home screen, check out [Google Developers](https://developers.google.com/web/updates/2014/11/Support-for-installable-web-apps-with-webapp-manifest-in-chrome-38-for-Android).
 To learn about how to be more progressive with your features, supporting all your users, check out [Always Be Progressive](https://samthor.github.io/AlwaysBeProgressive/).
+
+## License
+
+Copyright 2016 Google, Inc.
+
+Licensed under the [Apache License, Version 2.0](LICENSE) (the "License");
+you may not use this file except in compliance with the License. You may
+obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
