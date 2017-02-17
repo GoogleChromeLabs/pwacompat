@@ -1,27 +1,25 @@
-pwacompat is a library to help your modern website be more progressive.
-This takes a [Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest), and, where possible, provides support to non-standard browsers such as Safari on iOS.
+pwacompat is a library that turns a Web App Manifest into older browser support.
+
+<img src="explainer.png" align="center" alt="pwacompat explainer" />
 
 # Usage
 
-## Drop-In
-
-Drop-in the `pwacompat.min.js` script into your page directly to get its benefits.
-Add this script tag anywhere after your manifest file is included, e.g., at the bottom of your page-
+Drop-in the `pwacompat.min.js` script into your page after your manifest-
 
 ```html
 <link rel="manifest" href="manifest.json" />
-<script src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v1.0.0/pwacompat.min.js"></script>
+<script src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v1.0.2/pwacompat.min.js"></script>
 ```
 
-**Warning!** Don't use the `pwacompat.js` file directly, as it's written in ES6, which can't be run  natively in most browsers.
+**Warning!** Don't use the `pwacompat.js` file directly, as it's written in ES6, uses magic unsupported in all browsers, and *needs to be compiled before use*.
 
-### Browsers
+## Browsers
 
 This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+).
 
 ## Library
 
-You can also use pwacompat as a library, where it will convert a manifest to HTML that can be inserted into your document's header.
+You can also use pwacompat as a library (e.g., in a build process), where it will convert a manifest to HTML that can be inserted into your document's header.
 Install with NPM-
 
 ```bash
@@ -38,10 +36,12 @@ console.info(html);  // prints '<meta name="...">\n' and so on
 
 # Details
 
+
 pwacompat performs a few main tasks-
 
-* Creates fallback meta tags for older devices (e.g., iOS, older WebKit/Chromium forks etc)
 * Creates meta icon tags for all icons in the manifest
+  * ... but not if any are already found
+* Creates fallback meta tags for older devices (e.g., iOS, older WebKit/Chromium forks etc)
 
 The drop-in version also provides JS that enhances webapps added to an [iOS homescreen](https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html#//apple_ref/doc/uid/TP40002051-CH3-SW2)-
 
@@ -50,7 +50,7 @@ The drop-in version also provides JS that enhances webapps added to an [iOS home
 
 # Web App Manifest
 
-Your Web App Manifest is normally named `manifest.json`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest/manifest.json" />`, and should look a bit like this-
+Your Web App Manifest is normally named `manifest.json`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.json" />`, and should look a bit like this-
 
 ```js
 {
