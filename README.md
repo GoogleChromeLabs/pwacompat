@@ -11,7 +11,7 @@ Drop-in the `pwacompat.min.js` script into your page after your manifest-
 
 ```html
 <link rel="manifest" href="manifest.json" />
-<script src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v1.0.2/pwacompat.min.js"></script>
+<script src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v1.0.3/pwacompat.min.js"></script>
 ```
 
 **Warning!** Don't use the `pwacompat.js` file directly, as it's written in ES6, uses magic unsupported in all browsers, and *needs to be compiled before use*.
