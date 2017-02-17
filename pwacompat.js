@@ -17,8 +17,10 @@
 'use strict';
 
 (function() {
-  // we have serviceWorker, or no localStorage (not supported, or in private mode): fail out
-  if (navigator.serviceWorker || !window.localStorage) { return; }
+  const compat = !!navigator.serviceWorker;
+  const hasAnyIcon = document.head.querySelector('link[type|="icon"]');
+  // if we have any icon, and are already compatible (have service worker), then fail out
+  if (hasAnyIcon && compat) { return; }
 
   const storageKey = 'pwacompat.js';
   const manifestEl = document.head.querySelector('link[rel="manifest"]');
@@ -27,7 +29,9 @@
     return;  // no manifest
   }
 
-  fetchManifest(processManifest, navigator['standalone']);
+  // see: https://developer.mozilla.org/en-US/docs/Web/API/Navigation_timing_API
+  const isNormalLoad = (window.performance && window.performance.navigation.type !== 1);
+  fetchManifest(processManifest, navigator['standalone'] || isNormalLoad);
 
   function fetchManifest(callback, preferSkip) {
     if (preferSkip) {  // avoid performing XHR
@@ -58,7 +62,7 @@
 
   function processManifest(manifest) {
     const parse = require('./lib');
-    parse(manifest).forEach(tag => {
+    parse(manifest, compat).forEach(tag => {
       const node = document.createElement(tag.name);
       for (const k in tag.attr) {
         node.setAttribute(k, tag.attr[k]);

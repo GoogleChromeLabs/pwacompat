@@ -18,10 +18,41 @@
 
 /**
  * @param {!Object} manifest Parsed JSON manifest.
+ * @param {boolean=} opt_compat Whether we think this is a compatible browser.
  * @return {!Array<{name: string, attr: !Object}>}
  */
-function parse(manifest) {
+function parse(manifest, opt_compat) {
   const out = [];
+
+  // Parse the icons.
+  const icons = manifest['icons'] || [];
+  icons.sort((a, b) => {
+    return parseInt(b.sizes, 10) - parseInt(a.sizes, 10);  // sort larger first
+  });
+  icons.forEach(icon => {
+    out.push({
+      name: 'link',
+      attr: {
+        'rel': 'icon',
+        'href': icon.src,
+        'sizes': icon.sizes,
+      },
+    });
+    if (!opt_compat) {
+      out.push({
+        name: 'link',
+        attr: {
+          'rel': 'apple-touch-icon',
+          'href': icon.src,
+          'sizes': icon.sizes,
+        },
+      });
+    }
+  });
+
+  if (opt_compat) {
+    return out;  // compat browsers only need icons
+  }
 
   function createMeta(name, value) {
     if (!value) { return; }
@@ -64,30 +95,6 @@ function parse(manifest) {
   if (itunes) {
     createMeta('apple-itunes-app', `app-id=${itunes}`)
   }
-
-  // Parse the icons.
-  const icons = manifest['icons'] || [];
-  icons.sort((a, b) => {
-    return parseInt(b.sizes, 10) - parseInt(a.sizes, 10);  // sort larger first
-  });
-  icons.forEach(icon => {
-    out.push({
-      name: 'link',
-      attr: {
-        'rel': 'icon',
-        'href': icon.src,
-        'sizes': icon.sizes,
-      },
-    });
-    out.push({
-      name: 'link',
-      attr: {
-        'rel': 'apple-touch-icon',
-        'href': icon.src,
-        'sizes': icon.sizes,
-      },
-    });
-  });
 
   return out;
 }
