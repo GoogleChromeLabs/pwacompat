@@ -1,4 +1,5 @@
 pwacompat is a library that turns a Web App Manifest into older browser support.
+[Learn more about the Web App Manifest!](https://developer.mozilla.org/en-US/docs/Web/Manifest)
 
 <div style="text-align: center">
   <img src="explainer.png" with="256" height="96" alt="pwacompat explainer" />
