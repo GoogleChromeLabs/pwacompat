@@ -6,16 +6,16 @@
       "src": "logo-192.png",
       "sizes": "192x192"
     }, {
-      "src": "logo-64.png",
-      "sizes": "64x64"
+      "src": "logo-128.png",
+      "sizes": "128x128"
     }
   ],
   "display": "fullscreen",
   "scope": "/",
-  "start_url": "?homescreen=true",
+  "start_url": "./?homescreen=true",
   "orientation": "portrait",
-  "theme_color": "#f44b28",
-  "background_color": "#fff",
+  "theme_color": "#1abc9c",
+  "background_color": "#2c3e50",
   "related_applications": [
     {
       "platform": "play",

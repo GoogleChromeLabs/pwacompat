@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google Inc. All rights reserved.
+ * Copyright 2018 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,96 +17,239 @@
 'use strict';
 
 (function() {
-  const compat = !!navigator.serviceWorker;
-  const hasAnyIcon = document.head.querySelector('link[type|="icon"]');
-  // if we have any icon, and are already compatible (have service worker), then fail out
-  if (hasAnyIcon && compat) { return; }
-
-  const storageKey = 'pwacompat.js';
-  const manifestEl = document.head.querySelector('link[rel="manifest"]');
-  if (!manifestEl || !manifestEl.href) {
-    console.warn('pwacompat.js can\'t operate: no <link rel="manifest" ... /> found');
-    return;  // no manifest
+  if (!('fetch' in window)) {
+    return;
+  } else if (document.readyState === 'complete') {
+    setup();
+  } else {
+    window.addEventListener('load', setup);
   }
 
-  // see: https://developer.mozilla.org/en-US/docs/Web/API/Navigation_timing_API
-  const isNormalLoad = (window.performance && window.performance.navigation.type !== 1);
-  fetchManifest(processManifest, navigator['standalone'] || isNormalLoad);
+  const defaultSplashColor = '#f8f9fa';
+  const defaultSplashTextSize = 24;
+  const idealSplashIconSize = 128;
+  const minimumSplashIconSize = 48;
+  const splashIconPadding = 32;
 
-  function fetchManifest(callback, preferSkip) {
-    if (preferSkip) {  // avoid performing XHR
-      let manifest;
-      try {
-        manifest = JSON.parse(window.localStorage[storageKey]);
-      } catch (e) {
-        // ignore
+  const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
+  const isEdge = (navigator.userAgent && navigator.userAgent.indexOf('Edge') !== -1);
+
+  function setup() {
+    const manifestEl = document.head.querySelector('link[rel="manifest"]');
+    const manifestHref = manifestEl ? manifestEl.href : '';
+
+    Promise.resolve()
+        .then(() => {
+          if (!manifestHref) {
+            throw `can't find <link rel="manifest" href=".." />'`;
+          }
+          return window.fetch(manifestHref);
+        })
+        .then((response) => response.json())
+        .then((data) => process(data, manifestHref))
+        .catch((err) => console.warn('pwacompat.js error', err));
+  }
+
+  function push(localName, attr) {
+    const node = document.createElement(localName);
+    for (const k in attr) {
+      node.setAttribute(k, attr[k]);
+    }
+    document.head.appendChild(node);
+    return node;
+  }
+
+  function meta(name, content) {
+    if (content) {
+      if (content === true) {
+        content = 'yes';
       }
-      if (manifest) {
-        callback(manifest);
+      push('meta', {name, content});
+    }
+  }
+
+  function process(manifest, href) {
+    const icons = manifest['icons'] || [];
+    icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
+    icons.forEach((icon) => {
+      const attr = {'rel': 'icon', 'href': new URL(icon['src'], href), 'sizes': icon['sizes']};
+      push('link', attr);
+
+      if (isSafari) {
+        attr['rel'] = 'apple-touch-icon';
+        const node = push('link', attr);
+        icon['node'] = node;
+      }
+    });
+
+    const isWholeScreen = ['standalone', 'fullscreen'].indexOf(manifest['display']) !== -1;
+    const isCapable = isWholeScreen || manifest['display'] === 'minimal-ui';
+    meta('mobile-web-app-capable', isCapable);
+
+    if (isEdge) {
+      meta('msapplication-starturl', manifest['start_url'] || '/');
+      meta('msapplication-TileColor', manifest['theme_color']);
+    }
+    if (!isSafari) {
+      return;  // the rest of this file is for Safari
+    }
+
+    const backgroundIsLight =
+        shouldUseLightForeground(manifest['background_color'] || defaultSplashColor);
+
+    // Add related iTunes app from manifest.
+    const itunes = findAppleId(manifest['related_applications']);
+    itunes && meta('apple-itunes-app', `app-id=${itunes}`);
+
+    // nb. Safari 11.3+ gives a deprecation warning about this meta tag: let's assume Safari will
+    // eventually support real theme colors here.
+    meta('apple-mobile-web-app-status-bar-style', manifest['theme_color']);
+    meta('apple-mobile-web-app-capable', isCapable);
+
+    function splashFor({width, height}, icon) {
+      const ratio = window.devicePixelRatio;
+      const ctx = contextForCanvas({width: width * ratio, height: height * ratio});
+
+      ctx.scale(ratio, ratio);
+      ctx.fillStyle = manifest['background_color'] || defaultSplashColor;
+      ctx.fillRect(0, 0, width, height);
+      ctx.translate(width / 2, (height - splashIconPadding) / 2);
+
+      ctx.font = `${defaultSplashTextSize}px Sans-Serif`;
+      ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
+      const title = manifest['name'] || manifest['short_name'] || document.title;
+      const textWidth = ctx.measureText(title).width;
+
+      if (icon) {
+        // TODO: we need the image >=48px, use the big layout >=80dp, ideal is >=128dp
+        let iconWidth = (icon.width / ratio);
+        let iconHeight = (icon.height / ratio);
+        if (iconHeight > idealSplashIconSize) {
+          // clamp to 128px dimension
+          iconWidth /= (iconHeight / idealSplashIconSize);
+        }
+
+        if (iconWidth >= minimumSplashIconSize && iconHeight >= minimumSplashIconSize) {
+          ctx.drawImage(icon, iconWidth / -2, iconHeight / -2, iconWidth, iconHeight);
+          ctx.translate(0, iconHeight / 2 + splashIconPadding);
+        }
+      }
+      ctx.fillText(title, textWidth / -2, 0);
+
+      const generatedSplash = document.createElement('link');
+      generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
+      generatedSplash.setAttribute('media', `(device-width: ${width}px) and (device-height: ${height}px)`);
+      generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
+      return generatedSplash;
+    }
+
+    let applicationIcon = null;
+    const previous = new Set();
+    function updateSplash() {
+      const portrait = splashFor({width: window.screen.width, height: window.screen.height}, applicationIcon);
+      const landscape = splashFor({width: window.screen.height, height: window.screen.width}, applicationIcon);
+
+      document.head.appendChild(portrait);
+      document.head.appendChild(landscape);
+      previous.forEach((prev) => prev.remove());
+
+      // TODO: If added while in landscape mode, the splash screen works for both.
+      // If added while in portrait, only portrait works. What?!
+      previous.add(portrait);
+      previous.add(landscape);
+    }
+    updateSplash();
+    window.addEventListener('resize', updateSplash);
+
+    // fetch the largest icon to generate a splash screen
+    if (!icons.length) {
+      return;
+    }
+    const icon = icons[0];
+    const img = new Image();
+    img.onload = () => {
+      applicationIcon = img;
+      updateSplash();
+
+      // also redraw icon
+      if (!manifest['background_color']) {
         return;
       }
-    }
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => {
-      const manifest = JSON.parse(xhr.responseText);
-      try {
-        window.localStorage[storageKey] = xhr.responseText;
-      } catch (e) {
-        // can't save, maybe out of space or private mode, ignore
+      const redrawn = updateTransparent(img, manifest['background_color']);
+      if (redrawn === null) {
+        return;  // the rest probably aren't interesting either
       }
-      callback(manifest);
+      icon['node'].href = redrawn;
+
+      // fetch and fix all others
+      icons.slice(1).forEach((icon) => {
+        const img = new Image();
+        img.onload = () => {
+          const redrawn = updateTransparent(img, manifest['background_color'], true);
+          icon['node'].href = redrawn;
+        };
+        img.src = icon['node'].href;
+      });
+
     };
-    xhr.open('GET', manifestEl.href);
-    xhr.send();
+    img.src = icon['node'].href;
   }
 
-  function processManifest(manifest) {
-    const parse = require('./lib');
-    parse(manifest, compat).forEach(tag => {
-      const node = document.createElement(tag.name);
-      for (const k in tag.attr) {
-        node.setAttribute(k, tag.attr[k]);
-      }
-      document.head.appendChild(node);
+  function findAppleId(related) {
+    let itunes;
+    (related || [])
+        .filter((app) => app['platform'] === 'itunes')
+        .forEach((app) => {
+          if (app['id']) {
+            itunes = app['id'];
+          } else {
+            const match = app['url'].match(/id(\d+)/);
+            if (match) {
+              itunes = match[1];
+            }
+          }
+        });
+    return itunes;
+  }
+
+  function shouldUseLightForeground(color) {
+    const lightTestContext = contextForCanvas();
+    lightTestContext.fillStyle = color;
+    lightTestContext.fillRect(0, 0, 1, 1);
+    const pixelData = lightTestContext.getImageData(0, 0, 1, 1).data;
+
+    // From https://cs.chromium.org/chromium/src/chrome/android/java/src/org/chromium/chrome/browser/util/ColorUtils.java
+    const data = pixelData.map((v) => {
+      const f = v / 255;
+      return (f < 0.03928) ? f / 12.92 : Math.pow((f + 0.055) / 1.055, 2.4);
     });
-
-    // If this is a standalone iOS ATHS app, perform setup actions.
-    if (navigator['standalone']) {
-      iosStandalone(manifest);
-    }
+    const lum = 0.2126 * data[0] + 0.7152 * data[1] + 0.0722 * data[2];
+    const contrast = Math.abs((1.05) / (lum + 0.05));
+    return contrast > 3;
   }
 
-  function iosStandalone(manifest) {
-    // Intercept clicks, and if they're on the same domain, keep them in the window by updating
-    // the location rather than following the link proper.
-    document.addEventListener('click', ev => {
-      if (ev.target.tagName !== 'A') { return; }
-      const linkedUrl = new URL(ev.target.href);  // computes target domain/origin for us
-      if (linkedUrl.origin !== location.origin) {
-        // do nothing, this will open in a new tab
-        window.localStorage[storageKey + ':out'] = location.href;
-      } else {
-        // local navigation, prevent page load
-        ev.preventDefault();
-        window.location = ev.target.href;
+  function updateTransparent(image, background, force=false) {
+    const context = contextForCanvas(image);
+    context.drawImage(image, 0, 0);
+
+    // look for transparent pixel in top-left
+    if (!force) {
+      const imageData = context.getImageData(0, 0, 1, 1);
+      if (imageData.data[3] == 255) {
+        return null;
       }
-    });
-
-    if (!window.sessionStorage || window.sessionStorage['loaded']) { return; }
-    window.sessionStorage['loaded'] = true;
-
-    // If this is the first page load, load 'start_url' from the manifest file.
-    const startUrl = window.localStorage[storageKey + ':out'] || manifest['start_url'];
-    delete window.localStorage[storageKey + ':out'];
-    const ours = window.location.href + window.location.search;
-    if (!startUrl || startUrl == ours) {
-      // no start_url or return url available
-    } else if (startUrl.replace(/#.*$/, '') == ours) {
-      window.location.hash = startUrl.substr(startUrl.indexOf('#'));  // same, different hash
-    } else {
-      window.location = startUrl;
     }
+
+    context.globalCompositeOperation = 'destination-over';  // only replace transparent areas
+    context.fillStyle = background;
+    context.fillRect(0, 0, image.width, image.height);
+    return context.canvas.toDataURL();
   }
 
-})();
-
+  function contextForCanvas({width, height} = {width: 1, height: 1}) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas.getContext('2d');
+  }
+}());

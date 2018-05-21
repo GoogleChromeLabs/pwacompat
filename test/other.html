@@ -19,9 +19,32 @@
   <title>Other &mdash; PWA Compat</title>
   <meta name="viewport" content="width=device-width, user-scalable=no" />
   <link rel="manifest" href="manifest.json" />
-  <script src="../pwacompat.min.js"></script>
+  <script src="../pwacompat.js"></script>
+  <style>
+    body {
+      border-top: 10px solid blue;
+      background: #ff0;
+    }
+    html {
+      margin: 0;
+      padding: 0;
+      border-top: 10px solid red;
+      overflow: auto;
+    }
+    #test {
+      position: fixed;
+      top: -16px;
+      left: 0;
+      right: 0;
+      background: pink;
+      height: 24px;
+    }
+  </style>
 </head>
 <body>
+
+<div id="test">
+</div>
 
 <p>
   Different page for the PWA Compat Test.
