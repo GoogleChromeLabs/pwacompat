@@ -115,7 +115,7 @@
       ctx.fillRect(0, 0, width, height);
       ctx.translate(width / 2, (height - splashIconPadding) / 2);
 
-      ctx.font = `${defaultSplashTextSize}px Sans-Serif`;
+      ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
       ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
       const title = manifest['name'] || manifest['short_name'] || document.title;
       const textWidth = ctx.measureText(title).width;
