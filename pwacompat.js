@@ -106,7 +106,7 @@
     meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
     meta('apple-mobile-web-app-capable', isCapable);
 
-    function splashFor({width, height}, icon) {
+    function splashFor({width, height}, orientation, icon) {
       const ratio = window.devicePixelRatio;
       const ctx = contextForCanvas({width: width * ratio, height: height * ratio});
 
@@ -121,7 +121,7 @@
       const textWidth = ctx.measureText(title).width;
 
       if (icon) {
-        // TODO: we need the image >=48px, use the big layout >=80dp, ideal is >=128dp
+        // nb: on Chrome, we need the image >=48px, use the big layout >=80dp, ideal is >=128dp
         let iconWidth = (icon.width / ratio);
         let iconHeight = (icon.height / ratio);
         if (iconHeight > idealSplashIconSize) {
@@ -139,28 +139,28 @@
 
       const generatedSplash = document.createElement('link');
       generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
-      generatedSplash.setAttribute('media', `(device-width: ${width}px) and (device-height: ${height}px)`);
+      generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
       generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
+
       return generatedSplash;
     }
 
-    let applicationIcon = null;
     const previous = new Set();
-    function updateSplash() {
-      const portrait = splashFor({width: window.screen.width, height: window.screen.height}, applicationIcon);
-      const landscape = splashFor({width: window.screen.height, height: window.screen.width}, applicationIcon);
+    function updateSplash(applicationIcon) {
+      const portrait = splashFor(window.screen, 'portrait', applicationIcon);
+      const landscape = splashFor({
+        width: window.screen.height,
+        height: window.screen.width,
+      }, 'landscape', applicationIcon);
+
+      previous.forEach((prev) => prev.remove());
 
       document.head.appendChild(portrait);
       document.head.appendChild(landscape);
-      previous.forEach((prev) => prev.remove());
-
-      // TODO: If added while in landscape mode, the splash screen works for both.
-      // If added while in portrait, only portrait works. What?!
       previous.add(portrait);
       previous.add(landscape);
     }
     updateSplash();
-    window.addEventListener('resize', updateSplash);
 
     // fetch the largest icon to generate a splash screen
     if (!icons.length) {
@@ -169,8 +169,7 @@
     const icon = icons[0];
     const img = new Image();
     img.onload = () => {
-      applicationIcon = img;
-      updateSplash();
+      updateSplash(img);
 
       // also redraw icon
       if (!manifest['background_color']) {
