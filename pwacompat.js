@@ -72,14 +72,12 @@
   function process(manifest, href) {
     const icons = manifest['icons'] || [];
     icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
-    icons.forEach((icon) => {
+    const appleTouchIcons = icons.map((icon) => {
       const attr = {'rel': 'icon', 'href': new URL(icon['src'], href), 'sizes': icon['sizes']};
       push('link', attr);
-
       if (isSafari) {
         attr['rel'] = 'apple-touch-icon';
-        const node = push('link', attr);
-        icon['node'] = node;
+        return push('link', attr);
       }
     });
 
@@ -97,6 +95,7 @@
     const backgroundIsLight =
         shouldUseLightForeground(manifest['background_color'] || defaultSplashColor);
     const themeIsLight = shouldUseLightForeground(manifest['theme_color'] || 'black');
+    const title = manifest['name'] || manifest['short_name'] || document.title;
 
     // Add related iTunes app from manifest.
     const itunes = findAppleId(manifest['related_applications']);
@@ -105,6 +104,7 @@
     // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
     meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
     meta('apple-mobile-web-app-capable', isCapable);
+    meta('apple-mobile-web-app-title', title);
 
     function splashFor({width, height}, orientation, icon) {
       const ratio = window.devicePixelRatio;
@@ -117,7 +117,6 @@
 
       ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
       ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
-      const title = manifest['name'] || manifest['short_name'] || document.title;
       const textWidth = ctx.measureText(title).width;
 
       if (icon) {
@@ -160,18 +159,18 @@
       previous.add(portrait);
       previous.add(landscape);
     }
-    updateSplash();
+    updateSplash(null);
 
     // fetch the largest icon to generate a splash screen
-    if (!icons.length) {
+    if (!appleTouchIcons.length) {
       return;
     }
-    const icon = icons[0];
+    const icon = appleTouchIcons[0];
     const img = new Image();
     img.onload = () => {
       updateSplash(img);
 
-      // also redraw icon
+      // also check and redraw icon
       if (!manifest['background_color']) {
         return;
       }
@@ -179,20 +178,20 @@
       if (redrawn === null) {
         return;  // the rest probably aren't interesting either
       }
-      icon['node'].href = redrawn;
+      icon.href = redrawn;
 
-      // fetch and fix all others
-      icons.slice(1).forEach((icon) => {
+      // fetch and fix all remaining icons
+      appleTouchIcons.slice(1).forEach((icon) => {
         const img = new Image();
         img.onload = () => {
           const redrawn = updateTransparent(img, manifest['background_color'], true);
-          icon['node'].href = redrawn;
+          icon.href = redrawn;
         };
-        img.src = icon['node'].href;
+        img.src = icon.href;
       });
 
     };
-    img.src = icon['node'].href;
+    img.src = icon.href;
   }
 
   function findAppleId(related) {
@@ -233,6 +232,7 @@
     context.drawImage(image, 0, 0);
 
     // look for transparent pixel in top-left
+    // TODO: Chrome actually checks the four corners for some cases.
     if (!force) {
       const imageData = context.getImageData(0, 0, 1, 1);
       if (imageData.data[3] == 255) {
