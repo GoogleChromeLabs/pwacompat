@@ -25,6 +25,7 @@
     window.addEventListener('load', setup);
   }
 
+  const capableDisplayModes = ['standalone', 'fullscreen', 'minimal-ui'];
   const defaultSplashColor = '#f8f9fa';
   const defaultSplashTextSize = 24;
   const idealSplashIconSize = 128;
@@ -82,8 +83,7 @@
       }
     });
 
-    const isWholeScreen = ['standalone', 'fullscreen'].indexOf(manifest['display']) !== -1;
-    const isCapable = isWholeScreen || manifest['display'] === 'minimal-ui';
+    const isCapable = capableDisplayModes.indexOf(manifest['display']) !== -1;
     meta('mobile-web-app-capable', isCapable);
 
     if (isEdge) {
@@ -96,14 +96,14 @@
 
     const backgroundIsLight =
         shouldUseLightForeground(manifest['background_color'] || defaultSplashColor);
+    const themeIsLight = shouldUseLightForeground(manifest['theme_color'] || 'black');
 
     // Add related iTunes app from manifest.
     const itunes = findAppleId(manifest['related_applications']);
     itunes && meta('apple-itunes-app', `app-id=${itunes}`);
 
-    // nb. Safari 11.3+ gives a deprecation warning about this meta tag: let's assume Safari will
-    // eventually support real theme colors here.
-    meta('apple-mobile-web-app-status-bar-style', manifest['theme_color']);
+    // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
+    meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
     meta('apple-mobile-web-app-capable', isCapable);
 
     function splashFor({width, height}, icon) {
@@ -125,8 +125,9 @@
         let iconWidth = (icon.width / ratio);
         let iconHeight = (icon.height / ratio);
         if (iconHeight > idealSplashIconSize) {
-          // clamp to 128px dimension
+          // clamp to 128px height max
           iconWidth /= (iconHeight / idealSplashIconSize);
+          iconHeight = idealSplashIconSize;
         }
 
         if (iconWidth >= minimumSplashIconSize && iconHeight >= minimumSplashIconSize) {
