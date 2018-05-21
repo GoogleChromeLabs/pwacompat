@@ -31,7 +31,7 @@ For Safari, PWACompat also-
 
 ## Demo
 
-For a demo, try adding [Emojityper](https://emojityper.com/) to your iOS home screen.
+For a demo, try adding [Emojityper](https://emojityper.app/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to your iOS home screen.
 
 ## Support
 
