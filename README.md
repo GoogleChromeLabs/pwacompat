@@ -1,10 +1,10 @@
 PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers.
-If you've created a `manifest.json` but want to have wide support everywhere else, look no further 👍
+If you've created a `manifest.webmanifest` but want to have wide support everywhere else, look no further 👍
 
 Just include this script (or bundle/serve it yourself) in your page-
 
 ```html
-<link rel="manifest" href="manifest.json" />
+<link rel="manifest" href="manifest.webmanifest" />
 <script async src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v2.0.1/pwacompat.min.js"></script>
 ```
 
@@ -41,7 +41,7 @@ Note that v1 of PWACompat used to also provide a build-time dependency: that sup
 
 # Web App Manifest
 
-Your Web App Manifest is normally named `manifest.json`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.json" />`, and should look a bit like this-
+Your Web App Manifest is normally named `manifest.webmanifest`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.webmanifest" />`, and should look a bit like this-
 
 ```js
 {
