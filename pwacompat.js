@@ -18,11 +18,7 @@
 
 (function() {
   if (!('fetch' in window)) {
-    return;
-  } else if (document.readyState === 'complete') {
-    setup();
-  } else {
-    window.addEventListener('load', setup);
+    return;  // basic feature detection: from Mobile Safari 10.3+
   }
 
   const capableDisplayModes = ['standalone', 'fullscreen', 'minimal-ui'];
@@ -44,7 +40,11 @@
           if (!manifestHref) {
             throw `can't find <link rel="manifest" href=".." />'`;
           }
-          return window.fetch(manifestHref);
+          const opts = /** @type {!RequestInit} */ ({});
+          if (manifestHref.crossOrigin === 'use-credentials') {
+            opts.credentials = 'include';
+          }
+          return window.fetch(manifestHref, opts);
         })
         .then((response) => response.json())
         .then((data) => process(data, manifestHref))
@@ -251,5 +251,12 @@
     canvas.width = width;
     canvas.height = height;
     return canvas.getContext('2d');
+  }
+
+  // actually run PWACompat here
+  if (document.readyState === 'complete') {
+    setup();
+  } else {
+    window.addEventListener('load', setup);
   }
 }());
