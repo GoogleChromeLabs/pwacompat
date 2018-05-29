@@ -5,7 +5,9 @@ Just include this script (or bundle/serve it yourself) in your page-
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v2.0.1/pwacompat.min.js"></script>
+<script async src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v2.0.2/pwacompat.min.js"
+    integrity="sha384-Hed93irwedHCADsxBJAVmlSMiqpE9BIQPp1XK7tqJh5olTEJTCJnlE7wRU3IDOz9"
+    crossorigin="anonymous"></script>
 ```
 
 For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and mobile-proof your site](https://medium.com/dev-channel/how-to-add-a-web-app-manifest-and-mobile-proof-your-site-450e6e485638) or watch 📹 [theming as part of The Standard](https://www.youtube.com/watch?v=5fEMTxpA6BA).
