@@ -41,7 +41,11 @@ Note that v1 of PWACompat used to also provide a build-time dependency: that sup
 
 # Web App Manifest
 
-Your Web App Manifest is normally named `manifest.webmanifest`, is referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.webmanifest" />`, and should look a bit like this-
+Your Web App Manifest is:
+
+* normally named `manifest.webmanifest` (although some folks name it `manifest.json`)
+* referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.webmanifest" />`
+* and should look a bit like this-
 
 ```js
 {
@@ -58,6 +62,7 @@ Your Web App Manifest is normally named `manifest.webmanifest`, is referenced fr
 ```
 
 For more information on the Web App Manifest, and how e.g., modern browsers will prompt engaged users to install your site to their home screen, check out [Web Fundamentals](https://developers.google.com/web/fundamentals/web-app-manifest/).
+There's also a number of [online generators](https://www.google.com/search?q=web+app+manifest+generator).
 
 # Release
 
