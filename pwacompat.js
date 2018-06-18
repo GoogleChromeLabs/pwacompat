@@ -30,6 +30,7 @@
 
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
   const isEdge = (navigator.userAgent && navigator.userAgent.indexOf('Edge') !== -1);
+  const isEdgePWA = (typeof Windows !== 'undefined');
 
   function setup() {
     const manifestEl = document.head.querySelector('link[rel="manifest"]');
@@ -83,6 +84,7 @@
 
     const isCapable = capableDisplayModes.indexOf(manifest['display']) !== -1;
     meta('mobile-web-app-capable', isCapable);
+    updateThemeColor(manifest['theme_color'] || 'black');
 
     if (isEdge) {
       meta('msapplication-starturl', manifest['start_url'] || '/');
@@ -94,15 +96,13 @@
 
     const backgroundIsLight =
         shouldUseLightForeground(manifest['background_color'] || defaultSplashColor);
-    const themeIsLight = shouldUseLightForeground(manifest['theme_color'] || 'black');
     const title = manifest['name'] || manifest['short_name'] || document.title;
 
     // Add related iTunes app from manifest.
     const itunes = findAppleId(manifest['related_applications']);
     itunes && meta('apple-itunes-app', `app-id=${itunes}`);
 
-    // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
-    meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
+    // General iOS meta tags.
     meta('apple-mobile-web-app-capable', isCapable);
     meta('apple-mobile-web-app-title', title);
 
@@ -211,11 +211,97 @@
     return itunes;
   }
 
+  /**
+   * @param {string} color
+   */
+  function updateThemeColor(color) {
+    if (!(isSafari || isEdgePWA)) {
+      return;
+    }
+
+    const themeIsLight = shouldUseLightForeground(color);
+    if (isSafari) {
+      // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
+      meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
+    } else {
+      // Edge PWA
+      const t = getEdgeTitleBar();
+      if (t === null) {
+        console.debug('found Windows, could not fetch titleBar')
+        return;
+      }
+
+      const foreground = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
+      const background = colorToWindowsRGBA(color);
+
+      t.foregroundColor = foreground;
+      t.backgroundColor = background;
+
+      t.buttonForegroundColor = foreground;
+      t.buttonBackgroundColor = background;
+
+      t.inactiveForegroundColor = foreground;
+      t.inactiveBackgroundColor = background;
+
+      t.buttonInactiveForegroundColor = foreground;
+      t.buttonInactiveBackgroundColor = background;
+
+      // TODO(samthor): Left out for now to determine Windows defaults.
+      // t.buttonHoverForegroundColor = background;  // inverted
+      // t.buttonHoverBackgroundColor = foreground;
+      //
+      // t.buttonPressedForegroundColor = background;  // inverted
+      // t.buttonPressedBackgroundColor = foreground;
+      //
+      // t.buttonInactiveHoverForegroundColor = background;  // inverted
+      // t.buttonInactiveHoverBackgroundColor = foreground;
+    }
+  }
+
+  /**
+   * @return {?ApplicationViewTitleBar}
+   */
+  function getEdgeTitleBar() {
+    try {
+      return Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * The Windows titlebar APIs expect an object of {r, g, b, a}.
+   *
+   * @param {string} color
+   * @return {WindowsColor}
+   */
+  function colorToWindowsRGBA(color) {
+    const data = readColor(color);
+    return /** @type {WindowsColor} */ ({
+      'r': data[0],
+      'g': data[1],
+      'b': data[2],
+      'a': data[3],
+    });
+  }
+
+  /**
+   * @param {string} color
+   * @return {!Uint8ClampedArray}
+   */
+  function readColor(color) {
+    const c = contextForCanvas();
+    c.fillStyle = color;
+    c.fillRect(0, 0, 1, 1);
+    return c.getImageData(0, 0, 1, 1).data;
+  }
+
+  /**
+   * @param {string} color
+   * @return {boolean}
+   */
   function shouldUseLightForeground(color) {
-    const lightTestContext = contextForCanvas();
-    lightTestContext.fillStyle = color;
-    lightTestContext.fillRect(0, 0, 1, 1);
-    const pixelData = lightTestContext.getImageData(0, 0, 1, 1).data;
+    const pixelData = readColor(color);
 
     // From https://cs.chromium.org/chromium/src/chrome/android/java/src/org/chromium/chrome/browser/util/ColorUtils.java
     const data = pixelData.map((v) => {
