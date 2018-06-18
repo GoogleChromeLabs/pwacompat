@@ -255,31 +255,8 @@
         console.debug('found Windows, could not fetch titleBar')
         return;
       }
-
-      const foreground = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
-      const background = colorToWindowsRGBA(color);
-
-      t.foregroundColor = foreground;
-      t.backgroundColor = background;
-
-      t.buttonForegroundColor = foreground;
-      t.buttonBackgroundColor = background;
-
-      t.inactiveForegroundColor = foreground;
-      t.inactiveBackgroundColor = background;
-
-      t.buttonInactiveForegroundColor = foreground;
-      t.buttonInactiveBackgroundColor = background;
-
-      // TODO(samthor): Left out for now to determine Windows defaults.
-      // t.buttonHoverForegroundColor = background;  // inverted
-      // t.buttonHoverBackgroundColor = foreground;
-      //
-      // t.buttonPressedForegroundColor = background;  // inverted
-      // t.buttonPressedBackgroundColor = foreground;
-      //
-      // t.buttonInactiveHoverForegroundColor = background;  // inverted
-      // t.buttonInactiveHoverBackgroundColor = foreground;
+      t.foregroundColor = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
+      t.backgroundColor = colorToWindowsRGBA(color);
     }
   }
 
