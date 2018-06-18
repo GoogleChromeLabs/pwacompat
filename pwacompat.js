@@ -82,7 +82,8 @@
       }
     });
 
-    const isCapable = capableDisplayModes.indexOf(manifest['display']) !== -1;
+    const display = manifest['display'];
+    const isCapable = capableDisplayModes.indexOf(display) !== -1;
     meta('mobile-web-app-capable', isCapable);
     updateThemeColor(manifest['theme_color'] || 'black');
 
@@ -90,6 +91,19 @@
       meta('msapplication-starturl', manifest['start_url'] || '/');
       meta('msapplication-TileColor', manifest['theme_color']);
     }
+
+    // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
+    const orientation = simpleOrientationFor(manifest['orientation']);
+    meta('x5-orientation', orientation);      // QQ
+    meta('screen-orientation', orientation);  // UC
+    if (display === 'fullscreen') {
+      meta('x5-fullscreen', 'true');  // QQ
+      meta('full-screen', 'yes');     // UC
+    } else if (isCapable) {
+      meta('x5-page-mode', 'app');         // QQ
+      meta('browsermode', 'application');  // UC
+    }
+
     if (!isSafari) {
       return;  // the rest of this file is for Safari
     }
@@ -209,6 +223,17 @@
           }
         });
     return itunes;
+  }
+
+  function simpleOrientationFor(v) {
+    v = String(v || '');
+    const prefix = v.substr(0, 3);
+    if (prefix === 'por') {
+      return 'portrait';
+    } else if (prefix === 'lan') {
+      return 'landscape';
+    }
+    return '';
   }
 
   /**
