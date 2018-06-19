@@ -5,8 +5,8 @@ Just include this script (or bundle/serve it yourself) in your page-
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.rawgit.com/GoogleChrome/pwacompat/v2.0.2/pwacompat.min.js"
-    integrity="sha384-Hed93irwedHCADsxBJAVmlSMiqpE9BIQPp1XK7tqJh5olTEJTCJnlE7wRU3IDOz9"
+<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.5/pwacompat.min.js"
+    integrity="sha384-WqMpjtUyANdjeOvYaQSeR/1Zz6PaCX3KC3CnAizknCoXZMpM6uglF1Xq+5Utk7br"
     crossorigin="anonymous"></script>
 ```
 
