@@ -85,11 +85,16 @@
     const display = manifest['display'];
     const isCapable = capableDisplayModes.indexOf(display) !== -1;
     meta('mobile-web-app-capable', isCapable);
-    updateThemeColor(manifest['theme_color'] || 'black');
+    updateThemeColorRender(manifest['theme_color'] || 'black');
 
     if (isEdge) {
       meta('msapplication-starturl', manifest['start_url'] || '/');
       meta('msapplication-TileColor', manifest['theme_color']);
+    }
+
+    // nb: we check, but this won't override any _earlier_ (in DOM order) theme-color
+    if (!document.head.querySelector('[name="theme-color"]')) {
+      meta('theme-color', manifest['theme_color']);
     }
 
     // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
@@ -239,7 +244,7 @@
   /**
    * @param {string} color
    */
-  function updateThemeColor(color) {
+  function updateThemeColorRender(color) {
     if (!(isSafari || isEdgePWA)) {
       return;
     }
