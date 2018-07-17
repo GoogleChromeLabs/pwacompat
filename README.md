@@ -12,7 +12,7 @@ Just include this script (or bundle/serve it yourself) in your page-
     crossorigin="anonymous"></script>
 ```
 
-For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and mobile-proof your site](https://medium.com/dev-channel/how-to-add-a-web-app-manifest-and-mobile-proof-your-site-450e6e485638) or watch 📹 [theming as part of The Standard](https://www.youtube.com/watch?v=5fEMTxpA6BA).
+For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and mobile-proof your site](https://medium.com/dev-channel/how-to-add-a-web-app-manifest-and-mobile-proof-your-site-450e6e485638), watch 📹 [theming as part of The Standard](https://www.youtube.com/watch?v=5fEMTxpA6BA), or check out 📬 [the Web Fundamentals post on PWACompat](https://developers.google.com/web/updates/2018/07/pwacompat).
 
 <p align="center">
   <img src="https://storage.googleapis.com/hwhistlr.appspot.com/pwacompat-explainer.png" height="256" alt="PWACompat explainer" /><br />
@@ -22,24 +22,31 @@ For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and m
 # Details
 
 What does PWACompat actually do?
-If you provide a Web App Manifest, PWACompat will update your page and-
+If you provide a Web App Manifest, PWACompat will update your page and:
 
 * Create meta icon tags for all icons in the manifest (e.g., for a favicon, older browsers)
-* Create fallback meta tags for older devices (e.g., iOS, older WebKit/Chromium forks etc)
+* Create fallback meta tags for various browsers (e.g., iOS, WebKit/Chromium forks etc) describing how a webapp should open
+* Sets [the theme color](https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android) based on the manifest
 
-For Safari, PWACompat also-
+For Safari, PWACompat also:
 
 * Sets `apple-mobile-web-app-capable` (opening without a browser chrome) for display modes `standalone`, `fullscreen` or `minimal-ui`
 * Creates `apple-touch-icon` images, adding the manifest background to transparent icons: otherwise, iOS renders transparency as black
 * Creates dynamic splash images, closely matching the splash images generated [for Chromium-based browsers](https://cs.chromium.org/chromium/src/chrome/android/java/src/org/chromium/chrome/browser/webapps/WebappSplashScreenController.java?type=cs&q=webappsplash&sq=package:chromium&g=0&l=70)
 
+For PWAs on Windows with access to UWP APIs:
+
+* Sets the titlebar color
+
 ## Demo
 
-For a demo, try adding [Emojityper](https://emojityper.app/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to your iOS home screen.
+For a demo, try adding [Emojityper](https://emojityper.com/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to your iOS home screen.
+You can also install Emojityper from the [Microsoft Store](https://www.microsoft.com/p/emojityper/9np2xx3sxmct).
 
 ## Support
 
-This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+), fails silenty when unsupported, and provides the most value for your users on Mobile Safari.
+This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+), and fails silenty when unsupported.
+Mobile Safari arguably benefits the most from PWACompat, as generating [a large number of splash screens](https://google.com/search?q=ios%20webapp%20splash%20screens) manually is a complex task.
 
 Note that v1 of PWACompat used to also provide a build-time dependency: that support has been removed in v2+.
 
