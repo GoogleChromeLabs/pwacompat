@@ -43,6 +43,19 @@ For PWAs on Windows with access to UWP APIs:
 Do you think PWACompat should support backfilling more HTML tags needed for older browsers?
 [Let us know!](https://github.com/GoogleChromeLabs/pwacompat/issues)
 
+## Best Practice
+
+While PWACompat can generate most icons, meta tags etc that your PWA might need, it's best practice to include at least one `<link rel="icon" ... />`.
+This is standardized and older browsers, along with search engines, may use it from your page to display an icon.
+For example:
+
+```html
+<link rel="manifest" href="manifest.webmanifest" />
+<script async src="path/to/pwacompat.min.js"></script>
+<!-- include icon also from manifest -->
+<link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
+```
+
 ## Demo
 
 For a demo, try adding [Emojityper](https://emojityper.com/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to an iOS home screen (to see splash screens and icons).
