@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/GoogleChromeLabs/pwacompat.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwacompat)
+
 PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers.
 If you've created a `manifest.webmanifest` but want to have wide support everywhere else, look no further 👍
 
