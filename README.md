@@ -40,8 +40,8 @@ For PWAs on Windows with access to UWP APIs:
 
 ## Demo
 
-For a demo, try adding [Emojityper](https://emojityper.com/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to your iOS home screen.
-You can also install Emojityper from the [Microsoft Store](https://www.microsoft.com/p/emojityper/9np2xx3sxmct).
+For a demo, try adding [Emojityper](https://emojityper.com/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to an iOS home screen (to see splash screens and icons).
+You can also install Emojityper from the [Microsoft Store](https://www.microsoft.com/p/emojityper/9np2xx3sxmct) (where the titlebar color is automatically set the manifest's `theme_color`).
 
 ## Support
 
@@ -56,7 +56,7 @@ Your Web App Manifest is:
 
 * normally named `manifest.webmanifest` (although some folks name it `manifest.json`)
 * referenced from all pages on your site like `<link rel="manifest" href="path/to/manifest.webmanifest" />`
-* and should look a bit like this-
+* and should look a bit like this:
 
 ```js
 {
