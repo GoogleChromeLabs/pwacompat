@@ -7,8 +7,8 @@ Just include this script (or bundle/serve it yourself) in your page-
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.5/pwacompat.min.js"
-    integrity="sha384-WqMpjtUyANdjeOvYaQSeR/1Zz6PaCX3KC3CnAizknCoXZMpM6uglF1Xq+5Utk7br"
+<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.6/pwacompat.min.js"
+    integrity="sha384-GOaSLecPIMCJksN83HLuYf9FToOiQ2Df0+0ntv7ey8zjUHESXhthwvq9hXAZTifA"
     crossorigin="anonymous"></script>
 ```
 
