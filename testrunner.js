@@ -26,7 +26,16 @@ const port = 9223;
 const server = http.createServer(handler);
 
 server.listen(port, () => {
-  const p = childProcess.spawn(process.argv[2], process.argv.slice(3), {cwd: '.'});
+  const cmd = 'mocha-headless-chrome';
+  const args = ['-f', `http://localhost:${port}/suite.html`];
+  if (process.env.CI) {
+    args.push(
+      '-a', 'no-sandbox',
+      '-a', 'disable-setuid-sandbox',
+    );
+  }
+
+  const p = childProcess.spawn(cmd, args, {cwd: '.'});
   p.stdout.pipe(process.stdout);
   p.stderr.pipe(process.stderr);
   p.on('close', (code) => process.exit(code));

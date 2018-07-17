@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/GoogleChrome/pwacompat",
   "scripts": {
-    "test": "./runner.js mocha-headless-chrome -f http://localhost:9223/suite.html"
+    "test": "./testrunner.js"
   },
   "devDependencies": {
     "chai": "^4.1.2",
