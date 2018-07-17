@@ -38,6 +38,9 @@ For PWAs on Windows with access to UWP APIs:
 
 * Sets the titlebar color
 
+Do you think PWACompat should support backfilling more HTML tags needed for older browsers?
+[Let us know!](https://github.com/GoogleChromeLabs/pwacompat/issues)
+
 ## Demo
 
 For a demo, try adding [Emojityper](https://emojityper.com/) or [the demo site](https://googlechromelabs.github.io/pwacompat/test/) to an iOS home screen (to see splash screens and icons).
