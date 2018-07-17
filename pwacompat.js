@@ -35,6 +35,7 @@
   function setup() {
     const manifestEl = document.head.querySelector('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
+    const hrefFactory = buildHrefFactory([manifestHref, window.location]);
 
     Promise.resolve()
         .then(() => {
@@ -48,8 +49,23 @@
           return window.fetch(manifestHref, opts);
         })
         .then((response) => response.json())
-        .then((data) => process(data, manifestHref))
+        .then((data) => process(data, hrefFactory))
         .catch((err) => console.warn('pwacompat.js error', err));
+  }
+
+  /**
+   * @param {!Array<string>} options
+   * @return {function(string): string}
+   */
+  function buildHrefFactory(options) {
+    for (let i = 0; i < options.length; ++i) {
+      const opt = options[i];
+      try {
+        new URL('', opt);
+        return (part) => (new URL(part, opt)).toString();
+      } catch (e) {}
+    }
+    return (part) => part;
   }
 
   function push(localName, attr) {
@@ -70,11 +86,16 @@
     }
   }
 
-  function process(manifest, href) {
+  /**
+   * @param {!Object<string, (string|*)>} manifest
+   * @param {function(string): string} urlFactory
+   */
+  function process(manifest, urlFactory) {
     const icons = manifest['icons'] || [];
     icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
     const appleTouchIcons = icons.map((icon) => {
-      const attr = {'rel': 'icon', 'href': new URL(icon['src'], href), 'sizes': icon['sizes']};
+      // create icons as byproduct
+      const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
       if (isSafari) {
         attr['rel'] = 'apple-touch-icon';
@@ -85,7 +106,7 @@
     const display = manifest['display'];
     const isCapable = capableDisplayModes.indexOf(display) !== -1;
     meta('mobile-web-app-capable', isCapable);
-    updateThemeColorRender(manifest['theme_color'] || 'black');
+    updateThemeColorRender(/** @type {string} */ (manifest['theme_color']) || 'black');
 
     if (isEdge) {
       meta('msapplication-starturl', manifest['start_url'] || '/');
@@ -113,8 +134,8 @@
       return;  // the rest of this file is for Safari
     }
 
-    const backgroundIsLight =
-        shouldUseLightForeground(manifest['background_color'] || defaultSplashColor);
+    const backgroundIsLight = shouldUseLightForeground(
+        /** @type {string} */ (manifest['background_color']) || defaultSplashColor);
     const title = manifest['name'] || manifest['short_name'] || document.title;
 
     // Add related iTunes app from manifest.

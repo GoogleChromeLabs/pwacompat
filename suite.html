@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="node_modules/mocha/mocha.css" />
+<script src="node_modules/mocha/mocha.js"></script>
+<script src="node_modules/chai/chai.js"></script>
+<script>
+var assert = chai.assert;
+mocha.setup({ ui: 'tdd' });
+(function() {
+  var pageError = null;
+  window.addEventListener('error', function(event) {
+    pageError = event.filename + ':' + event.lineno + ' ' + event.message;
+  });
+  window.addEventListener('load', function() {
+    if (pageError) {
+      suite('page-script-errors', function() {
+        test('no script errors on page', function() {
+          assert.fail(null, null, pageError);
+        });
+      });
+    }
+    mocha.run();
+  });
+})();
+</script>
+<div id="mocha"></div>
+<script src="suite.js"></script>
