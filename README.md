@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/GoogleChromeLabs/pwacompat.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwacompat)
 
-PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers.
-If you've created a `manifest.webmanifest` but want to have wide support everywhere else, look no further 👍
+PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers for better [Progressive Web Apps](https://en.wikipedia.org/wiki/Progressive_Web_Apps).
+If you've created a `manifest.webmanifest` but want to have wide support everywhere else—through legacy HTML tags for icons and theming—look no further 👍
 
-Just include this script (or bundle/serve it yourself) in your page-
+Just include this script (or bundle/serve it yourself) in your page:
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
@@ -11,6 +11,8 @@ Just include this script (or bundle/serve it yourself) in your page-
     integrity="sha384-GOaSLecPIMCJksN83HLuYf9FToOiQ2Df0+0ntv7ey8zjUHESXhthwvq9hXAZTifA"
     crossorigin="anonymous"></script>
 ```
+
+And you're done! 🎉📄
 
 For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and mobile-proof your site](https://medium.com/dev-channel/how-to-add-a-web-app-manifest-and-mobile-proof-your-site-450e6e485638), watch 📹 [theming as part of The Standard](https://www.youtube.com/watch?v=5fEMTxpA6BA), or check out 📬 [the Web Fundamentals post on PWACompat](https://developers.google.com/web/updates/2018/07/pwacompat).
 
@@ -25,7 +27,7 @@ What does PWACompat actually do?
 If you provide a Web App Manifest, PWACompat will update your page and:
 
 * Create meta icon tags for all icons in the manifest (e.g., for a favicon, older browsers)
-* Create fallback meta tags for various browsers (e.g., iOS, WebKit/Chromium forks etc) describing how a webapp should open
+* Create fallback meta tags for various browsers (e.g., iOS, WebKit/Chromium forks etc) describing how a PWA should open
 * Sets [the theme color](https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android) based on the manifest
 
 For Safari, PWACompat also:
