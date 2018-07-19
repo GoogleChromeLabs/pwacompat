@@ -67,6 +67,7 @@ This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, 
 Mobile Safari arguably benefits the most from PWACompat, as generating [a large number of splash screens](https://google.com/search?q=ios%20webapp%20splash%20screens) manually is a complex task.
 
 Note that v1 of PWACompat used to also provide a build-time dependency: that support has been removed in v2+.
+[Read more here](https://github.com/GoogleChromeLabs/pwacompat/issues/9).
 
 # Web App Manifest
 
