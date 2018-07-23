@@ -273,7 +273,7 @@
     const themeIsLight = shouldUseLightForeground(color);
     if (isSafari) {
       // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
-      meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'default' : 'black');
+      meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'black' : 'default');
     } else {
       // Edge PWA
       const t = getEdgeTitleBar();
