@@ -207,6 +207,7 @@
     }
     const icon = appleTouchIcons[0];
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       updateSplash(img);
 
@@ -223,6 +224,7 @@
       // fetch and fix all remaining icons
       appleTouchIcons.slice(1).forEach((icon) => {
         const img = new Image();
+        img.crossOrigin = "anonymous";
         img.onload = () => {
           const redrawn = updateTransparent(img, manifest['background_color'], true);
           icon.href = redrawn;
