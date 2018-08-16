@@ -207,7 +207,7 @@
     }
     const icon = appleTouchIcons[0];
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       updateSplash(img);
 
@@ -224,7 +224,7 @@
       // fetch and fix all remaining icons
       appleTouchIcons.slice(1).forEach((icon) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
+        img.crossOrigin = 'anonymous';
         img.onload = () => {
           const redrawn = updateTransparent(img, manifest['background_color'], true);
           icon.href = redrawn;
@@ -275,12 +275,13 @@
     const themeIsLight = shouldUseLightForeground(color);
     if (isSafari) {
       // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
+      // TODO(samthor): Potentially set black-translucent in 'fullscreen'.
       meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'black' : 'default');
     } else {
       // Edge PWA
       const t = getEdgeTitleBar();
       if (t === null) {
-        console.debug('found Windows, could not fetch titleBar')
+        console.debug('UWP no titleBar')
         return;
       }
       t.foregroundColor = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
