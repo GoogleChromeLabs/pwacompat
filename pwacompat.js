@@ -28,8 +28,10 @@
   const minimumSplashIconSize = 48;
   const splashIconPadding = 32;
 
+  const userAgent = navigator.userAgent || '';
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
-  const isEdge = (navigator.userAgent && navigator.userAgent.indexOf('Edge') !== -1);
+  const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1);
+  const isEdge = (userAgent.indexOf('Edge') !== -1);
   const isEdgePWA = (typeof Windows !== 'undefined');
 
   function setup() {
@@ -97,7 +99,7 @@
       // create icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
-      if (isSafari) {
+      if (isSafariMobile) {
         attr['rel'] = 'apple-touch-icon';
         return push('link', attr);
       }
@@ -133,7 +135,7 @@
       meta('browsermode', 'application');  // UC
     }
 
-    if (!isSafari) {
+    if (!isSafariMobile) {
       return;  // the rest of this file is for Safari
     }
 
@@ -158,10 +160,6 @@
       ctx.fillRect(0, 0, width, height);
       ctx.translate(width / 2, (height - splashIconPadding) / 2);
 
-      ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
-      ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
-      const textWidth = ctx.measureText(title).width;
-
       if (icon) {
         // nb: on Chrome, we need the image >=48px, use the big layout >=80dp, ideal is >=128dp
         let iconWidth = (icon.width / ratio);
@@ -177,6 +175,10 @@
           ctx.translate(0, iconHeight / 2 + splashIconPadding);
         }
       }
+
+      ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
+      ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
+      const textWidth = ctx.measureText(title).width;
       ctx.fillText(title, textWidth / -2, 0);
 
       const generatedSplash = document.createElement('link');
@@ -271,12 +273,12 @@
    * @param {string} color
    */
   function updateThemeColorRender(color) {
-    if (!(isSafari || isEdgePWA)) {
+    if (!(isSafariMobile || isEdgePWA)) {
       return;
     }
 
     const themeIsLight = shouldUseLightForeground(color);
-    if (isSafari) {
+    if (isSafariMobile) {
       // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
       // TODO(samthor): Potentially set black-translucent in 'fullscreen'.
       meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'black' : 'default');
