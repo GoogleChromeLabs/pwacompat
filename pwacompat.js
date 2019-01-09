@@ -105,10 +105,16 @@
       }
     });
 
+    // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
+    const metaViewport = document.head.querySelector('meta[name="viewport"]');
+    const viewport = metaViewport && metaViewport.content || '';
+    const viewportFitCover = Boolean(viewport.match(/\bviewport-fit\s*=\s*cover\b/));
+    console.info('got viewport', metaViewport, viewport, 'viewportFitCover', viewportFitCover);
+
     const display = manifest['display'];
     const isCapable = capableDisplayModes.indexOf(display) !== -1;
     meta('mobile-web-app-capable', isCapable);
-    updateThemeColorRender(/** @type {string} */ (manifest['theme_color']) || 'black');
+    updateThemeColorRender(/** @type {string} */ (manifest['theme_color']) || 'black', viewportFitCover);
 
     if (isEdge) {
       // TODO(samthor): This could support IE9+'s "pinned sites" feature.
@@ -271,8 +277,9 @@
 
   /**
    * @param {string} color
+   * @param {boolean} viewportFitCover
    */
-  function updateThemeColorRender(color) {
+  function updateThemeColorRender(color, viewportFitCover) {
     if (!(isSafariMobile || isEdgePWA)) {
       return;
     }
@@ -280,14 +287,13 @@
     const themeIsLight = shouldUseLightForeground(color);
     if (isSafariMobile) {
       // nb. Safari 11.3+ gives a deprecation warning about this meta tag.
-      // TODO(samthor): Potentially set black-translucent in 'fullscreen'.
-      meta('apple-mobile-web-app-status-bar-style', themeIsLight ? 'black' : 'default');
+      const content = viewportFitCover ? 'black-translucent' : (themeIsLight ? 'black' : 'default');
+      meta('apple-mobile-web-app-status-bar-style', content);
     } else {
       // Edge PWA
       const t = getEdgeTitleBar();
       if (t === null) {
-        console.debug('UWP no titleBar')
-        return;
+        return;  // something went wrong, we had a UWP without titleBar
       }
       t.foregroundColor = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
       t.backgroundColor = colorToWindowsRGBA(color);

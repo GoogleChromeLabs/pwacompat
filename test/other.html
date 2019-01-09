@@ -17,40 +17,44 @@
 <html lang="en">
 <head>
   <title>Other &mdash; PWA Compat</title>
-  <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <meta name="viewport" content="initial-scale=1 viewport-fit=cover">
   <link rel="manifest" href="./manifest.json" />
   <script src="../pwacompat.js"></script>
+
+  <script>
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.register('./sw.js')
+    }
+  </script>
   <style>
     body {
-      border-top: 10px solid blue;
+      border-top: 10px solid #009;
       background: #ff0;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
     }
     html {
+      overflow: visible;
+      background: #00f;
       margin: 0;
       padding: 0;
       border-top: 10px solid red;
-      overflow: auto;
     }
-    #test {
-      position: fixed;
-      top: -16px;
-      left: 0;
-      right: 0;
-      background: pink;
-      height: 24px;
+    p {
+      margin: 0;
     }
   </style>
 </head>
 <body>
 
-<div id="test">
-</div>
 
 <p>
   Different page for the PWA Compat Test.
+  This page registers a zero Service Worker.
 </p>
 <p>
-  Link back to the <a href="index.html">starter page</a>.
+  Link back to the <a href="index.html">starter page</a>. <a href="other.html">Reload</a>
 </p>
 
 </body>

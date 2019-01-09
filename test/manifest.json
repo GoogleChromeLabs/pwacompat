@@ -10,7 +10,7 @@
       "sizes": "128x128"
     }
   ],
-  "display": "fullscreen",
+  "display": "standalone",
   "scope": "/",
   "start_url": "./?homescreen=true",
   "orientation": "portrait",
