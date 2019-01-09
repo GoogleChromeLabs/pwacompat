@@ -85,8 +85,14 @@ Your Web App Manifest is:
   "start_url": "/",
   "background_color": "#102a48",
   "icons": [
-    "src": "res/icon-128.png",
-    "sizes": "128x128"
+    {
+      "src": "res/icon-256.png",
+      "sizes": "256x256"
+    },
+    {
+      "src": "res/icon-128.png",
+      "sizes": "128x128"
+    }
   ]
 }
 ```
