@@ -109,6 +109,9 @@
     updateThemeColorRender(/** @type {string} */ (manifest['theme_color']) || 'black');
 
     if (isEdge) {
+      // TODO(samthor): This could support IE9+'s "pinned sites" feature.
+      meta('application-name', manifest['short_name']);
+      meta('msapplication-tooltip', manifest['description']);
       meta('msapplication-starturl', manifest['start_url'] || '/');
       meta('msapplication-TileColor', manifest['theme_color']);
     }
