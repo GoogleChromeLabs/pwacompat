@@ -17,8 +17,10 @@
 'use strict';
 
 (function() {
-  if (!('fetch' in window)) {
-    return;  // basic feature detection: from Mobile Safari 10.3+
+  // basic feature detection: from Mobile Safari 10.3+
+  // also fallout on 'navigator.standalone', we _are_ an iOS PWA
+  if (!('fetch' in window) || navigator.standalone) {
+    return;
   }
 
   const capableDisplayModes = ['standalone', 'fullscreen', 'minimal-ui'];
@@ -99,17 +101,26 @@
       // create icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
-      if (isSafariMobile) {
-        attr['rel'] = 'apple-touch-icon';
-        return push('link', attr);
+      if (!isSafariMobile) {
+        return;
       }
-    });
+      const dim = parseInt(icon['sizes']);
+      if (dim < 120) {
+        return;
+      }
+      attr['rel'] = 'apple-touch-icon';
+      return push('link', attr);
+    }).filter(Boolean);
+
+    if (appleTouchIcons.length) {
+      const last = appleTouchIcons[appleTouchIcons.length - 1];
+      last.removeAttribute('sizes');  // smallest is 'default', no sizes needed
+    }
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
     const metaViewport = document.head.querySelector('meta[name="viewport"]');
     const viewport = metaViewport && metaViewport.content || '';
     const viewportFitCover = Boolean(viewport.match(/\bviewport-fit\s*=\s*cover\b/));
-    console.info('got viewport', metaViewport, viewport, 'viewportFitCover', viewportFitCover);
 
     const display = manifest['display'];
     const isCapable = capableDisplayModes.indexOf(display) !== -1;
@@ -129,20 +140,20 @@
       meta('theme-color', manifest['theme_color']);
     }
 
-    // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
-    const orientation = simpleOrientationFor(manifest['orientation']);
-    meta('x5-orientation', orientation);      // QQ
-    meta('screen-orientation', orientation);  // UC
-    if (display === 'fullscreen') {
-      meta('x5-fullscreen', 'true');  // QQ
-      meta('full-screen', 'yes');     // UC
-    } else if (isCapable) {
-      meta('x5-page-mode', 'app');         // QQ
-      meta('browsermode', 'application');  // UC
-    }
-
     if (!isSafariMobile) {
-      return;  // the rest of this file is for Safari
+      // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
+      const orientation = simpleOrientationFor(manifest['orientation']);
+      meta('x5-orientation', orientation);      // QQ
+      meta('screen-orientation', orientation);  // UC
+      if (display === 'fullscreen') {
+        meta('x5-fullscreen', 'true');  // QQ
+        meta('full-screen', 'yes');     // UC
+      } else if (isCapable) {
+        meta('x5-page-mode', 'app');         // QQ
+        meta('browsermode', 'application');  // UC
+      }
+
+      return;  // the rest of this file is for Mobile Safari
     }
 
     const backgroundIsLight = shouldUseLightForeground(
@@ -192,6 +203,11 @@
       generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
       generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
 
+      const img = document.createElement('img');
+      img.src = generatedSplash.getAttribute('href');
+      document.body.appendChild(img);
+      img.width = 200;
+
       return generatedSplash;
     }
 
@@ -210,10 +226,10 @@
       previous.add(portrait);
       previous.add(landscape);
     }
-    updateSplash(null);
 
     // fetch the largest icon to generate a splash screen
     if (!appleTouchIcons.length) {
+      updateSplash(null);  // or no image, generate blank
       return;
     }
     const icon = appleTouchIcons[0];
@@ -243,6 +259,9 @@
         img.src = icon.href;
       });
 
+    };
+    img.onerror = () => {
+      updateSplash(null);  // something went wrong, generate blank image
     };
     img.src = icon.href;
   }

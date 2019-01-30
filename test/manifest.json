@@ -1,6 +1,6 @@
 {
-  "name": "PWA Compat",
-  "short_name": "PWA Compat",
+  "name": "long long `PWA Compat` long long",
+  "short_name": "short `PWA Compat` short",
   "icons": [
     {
       "src": "logo-192.png",
