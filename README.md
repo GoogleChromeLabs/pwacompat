@@ -1,14 +1,15 @@
 [![Build Status](https://travis-ci.org/GoogleChromeLabs/pwacompat.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwacompat)
 
 PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers for better [Progressive Web Apps](https://en.wikipedia.org/wiki/Progressive_Web_Apps).
-If you've created a `manifest.webmanifest` but want to have wide support everywhere else—through legacy HTML tags for icons and theming—look no further 👍
+This includes creating splash screens for Mobile Safari, and supporting IE/Edge's Pinned Sites feature.
 
-Just include this script (or bundle/serve it yourself) in your page:
+So, if you've created a `manifest.webmanifest` but want to have wide support everywhere else—through legacy HTML tags for icons and theming—look no further.
+Just include this script (or [bundle/serve it yourself](https://npmjs.com/package/pwacompat)) in your page:
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.7/pwacompat.min.js"
-    integrity="sha384-ptgwb3/v69WGur7IwSnWOowVxE7hcRB3DG/EiHdejrw2sFNwUHynFbiRMPxc4hdS"
+<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.8/pwacompat.min.js"
+    integrity="sha384-uONtBTCBzHKF84F6XvyC8S0gL8HTkAPeCyBNvfLfsqHh+Kd6s/kaS4BdmNQ5ktp1"
     crossorigin="anonymous"></script>
 ```
 
@@ -20,6 +21,22 @@ For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and m
   <img src="https://storage.googleapis.com/hwhistlr.appspot.com/pwacompat-explainer.png" height="256" alt="PWACompat explainer" /><br />
   <small><em>PWACompat takes your regular manifest and enhances other browsers</em></small>
 </p>
+
+# Best Practice &amp; Caveats
+
+While PWACompat can generate most icons, meta tags etc that your PWA might need, it's best practice to include at least one `<link rel="icon" ... />`.
+This is standardized and older browsers, along with search engines, may use it from your page to display an icon.
+For example:
+
+```html
+<link rel="manifest" href="manifest.webmanifest" />
+<script async src="path/to/pwacompat.min.js"></script>
+<!-- include icon also from manifest -->
+<link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
+```
+
+And prior [to iOS 12.2](https://twitter.com/mhartington/status/1089293403089784832), Mobile Safari opens external sites in the regular browser, meaning that flows like Oauth won't complete correctly.
+This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacompat/issues/15), but is an issue with PWAs on iOS generally.
 
 # Details
 
@@ -36,25 +53,16 @@ For Safari, PWACompat also:
 * Creates `apple-touch-icon` images, adding the manifest background to transparent icons: otherwise, iOS renders transparency as black
 * Creates dynamic splash images, closely matching the splash images generated [for Chromium-based browsers](https://cs.chromium.org/chromium/src/chrome/android/java/src/org/chromium/chrome/browser/webapps/WebappSplashScreenController.java?type=cs&q=webappsplash&sq=package:chromium&g=0&l=70)
 
+For IE and Edge:
+
+* Adds meta tags for the [Pinned Sites](https://blogs.msdn.microsoft.com/jennifer/2011/04/20/ie-pinned-sites-part-1-what-are-pinned-sites/) feature
+
 For PWAs on Windows with access to UWP APIs:
 
 * Sets the titlebar color
 
 Do you think PWACompat should support backfilling more HTML tags needed for older browsers?
 [Let us know!](https://github.com/GoogleChromeLabs/pwacompat/issues)
-
-## Best Practice
-
-While PWACompat can generate most icons, meta tags etc that your PWA might need, it's best practice to include at least one `<link rel="icon" ... />`.
-This is standardized and older browsers, along with search engines, may use it from your page to display an icon.
-For example:
-
-```html
-<link rel="manifest" href="manifest.webmanifest" />
-<script async src="path/to/pwacompat.min.js"></script>
-<!-- include icon also from manifest -->
-<link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
-```
 
 ## Demo
 
@@ -63,11 +71,8 @@ You can also install Emojityper from the [Microsoft Store](https://www.microsoft
 
 ## Support
 
-This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE9+), and fails silenty when unsupported.
-Mobile Safari arguably benefits the most from PWACompat, as generating [a large number of splash screens](https://google.com/search?q=ios%20webapp%20splash%20screens) manually is a complex task.
-
-Note that v1 of PWACompat used to also provide a build-time dependency: that support has been removed in v2+.
-[Read more here](https://github.com/GoogleChromeLabs/pwacompat/issues/9).
+This is supported in most modern browsers (UC Browser, Safari, Firefox, Chrome, IE10+), and fails silenty when unsupported.
+Mobile Safari benefits the most from PWACompat, as generating [a large number of splash screens](https://google.com/search?q=ios%20webapp%20splash%20screens) manually is a complex task.
 
 # Web App Manifest
 
