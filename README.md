@@ -35,8 +35,12 @@ For example:
 <link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
 ```
 
-And prior [to iOS 12.2](https://twitter.com/mhartington/status/1089293403089784832), Mobile Safari opens external sites in the regular browser, meaning that flows like Oauth won't complete correctly.
+## iOS
+
+Prior [to iOS 12.2](https://twitter.com/mhartington/status/1089293403089784832), Mobile Safari opens external sites in the regular browser, meaning that flows like Oauth won't complete correctly.
 This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacompat/issues/15), but is an issue with PWAs on iOS generally.
+
+If you specify a viewport tag which includes `viewport-fit=cover`, such as `<meta name="viewport" content="viewport-fit=cover">`, PWACompat will generate a meta tag that makes your PWA load in fullscreen mode, particularly useful for notched devices.
 
 # Details
 
