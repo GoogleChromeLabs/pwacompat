@@ -171,7 +171,7 @@
      * @param {{width: number, height: number}} arg 
      * @param {string} orientation 
      * @param {!Image|undefined} icon 
-     * @return {!HTMLLinkElement}
+     * @return {function(): !HTMLLinkElement}
      */
     function splashFor({width, height}, orientation, icon) {
       const ratio = window.devicePixelRatio;
@@ -222,41 +222,52 @@
         }
       }
 
-      const generatedSplash = /** @type {!HTMLLinkElement} */ (document.createElement('link'));
-      generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
-      generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
-      generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
-      return generatedSplash;
+      return () => {
+        const generatedSplash = /** @type {!HTMLLinkElement} */ (document.createElement('link'));
+        generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
+        generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
+        generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
+        return generatedSplash;
+      };
     }
-
-    const previous = new Set();
 
     /**
      * @param {!Image=} applicationIcon
      */
-    function updateSplash(applicationIcon) {
+    function renderBothSplash(applicationIcon) {
       const portrait = splashFor(window.screen, 'portrait', applicationIcon);
       const landscape = splashFor({
         width: window.screen.height,
         height: window.screen.width,
       }, 'landscape', applicationIcon);
 
-      document.head.appendChild(portrait);
-      document.head.appendChild(landscape);
-      previous.add(portrait);
-      previous.add(landscape);
+      // this is particularly egregious setTimeout use, but the .toDataURL() is one of the
+      // "bottlenecks" of PWACompat, so don't elongate any single frame more than needed.
+
+      window.setTimeout(() => {
+        document.head.appendChild(portrait());
+        window.setTimeout(() => {
+          document.head.appendChild(landscape());
+        }, 10);
+      }, 10);
     }
 
     // fetch the largest icon to generate a splash screen
-    if (!appleTouchIcons.length) {
-      updateSplash();  // or no image, generate blank
-      return;
-    }
     const icon = appleTouchIcons[0];
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    img.onerror = () => {
+      renderBothSplash();  // something went wrong, generate blank image
+    };
+
+    // nothing to render, just do the error case
+    if (!appleTouchIcons.length) {
+      img.onerror();
+      return;
+    }
+
     img.onload = () => {
-      updateSplash(img);
+      renderBothSplash(img);
 
       // also check and redraw icon
       if (!manifest['background_color']) {
@@ -280,9 +291,6 @@
       });
 
     };
-    img.onerror = () => {
-      updateSplash();  // something went wrong, generate blank image
-    };
     img.src = icon.href;
   }
 
@@ -304,14 +312,8 @@
   }
 
   function simpleOrientationFor(v) {
-    v = String(v || '');
-    const prefix = v.substr(0, 3);
-    if (prefix === 'por') {
-      return 'portrait';
-    } else if (prefix === 'lan') {
-      return 'landscape';
-    }
-    return '';
+    const prefix = String(v || '').substr(0, 3);
+    return {'por': 'portrait', 'lan': 'landscape'}[prefix] || '';
   }
 
   /**
