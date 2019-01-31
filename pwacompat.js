@@ -17,9 +17,9 @@
 'use strict';
 
 (function() {
-  // basic feature detection: from Mobile Safari 10.3+
+  // basic feature detection: from IE10+
   // also fallout on 'navigator.standalone', we _are_ an iOS PWA
-  if (!('fetch' in window) || navigator.standalone) {
+  if (!('onload' in XMLHttpRequest.prototype) || navigator.standalone) {
     return;
   }
 
@@ -33,28 +33,33 @@
   const userAgent = navigator.userAgent || '';
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
   const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1);
-  const isEdge = (userAgent.indexOf('Edge') !== -1);
+  const isIEOrEdge = Boolean(userAgent.match(/(MSIE |Edge\/|Trident\/)/));
   const isEdgePWA = (typeof Windows !== 'undefined');
 
   function setup() {
     const manifestEl = document.head.querySelector('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
-    const hrefFactory = buildHrefFactory([manifestHref, window.location]);
+    if (!manifestHref) {
+      throw `can't find <link rel="manifest" href=".." />'`;
+    }
 
-    Promise.resolve()
-        .then(() => {
-          if (!manifestHref) {
-            throw `can't find <link rel="manifest" href=".." />'`;
-          }
-          const opts = /** @type {!RequestInit} */ ({});
-          if (manifestHref.crossOrigin === 'use-credentials') {
-            opts.credentials = 'include';
-          }
-          return window.fetch(manifestHref, opts);
-        })
-        .then((response) => response.json())
-        .then((data) => process(data, hrefFactory))
-        .catch((err) => console.warn('pwacompat.js error', err));
+    const hrefFactory = buildHrefFactory([manifestHref, window.location]);
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', manifestHref);
+
+    // nb. use getAttribute for older brower safety
+    xhr.withCredentials = (manifestEl.getAttribute('crossorigin') === 'use-credentials');
+
+    // this is IE10+
+    xhr.onload = () => {
+      try {
+        const data = /** @type {!Object<string, *>} */ (JSON.parse(xhr.responseText));
+        process(data, hrefFactory);
+      } catch (err) {
+        console.warn('pwacompat.js error', err)
+      }
+    };
+    xhr.send(null);
   }
 
   /**
@@ -66,10 +71,10 @@
       const opt = options[i];
       try {
         new URL('', opt);
-        return (part) => (new URL(part, opt)).toString();
+        return (part) => (new URL(part || '', opt)).toString();
       } catch (e) {}
     }
-    return (part) => part;
+    return (part) => part || '';
   }
 
   function push(localName, attr) {
@@ -127,12 +132,18 @@
     meta('mobile-web-app-capable', isCapable);
     updateThemeColorRender(/** @type {string} */ (manifest['theme_color']) || 'black', viewportFitCover);
 
-    if (isEdge) {
-      // TODO(samthor): This could support IE9+'s "pinned sites" feature.
+    if (isIEOrEdge) {
+      // Pinned Sites, largely from https://technet.microsoft.com/en-us/windows/dn255024(v=vs.60)
       meta('application-name', manifest['short_name']);
       meta('msapplication-tooltip', manifest['description']);
-      meta('msapplication-starturl', manifest['start_url'] || '/');
-      meta('msapplication-TileColor', manifest['theme_color']);
+      meta('msapplication-starturl', urlFactory(/** @type {string} */ (manifest['start_url']) || '.'));
+      meta('msapplication-navbutton-color', manifest['theme_color']);
+
+      const largest = icons[0];
+      if (largest) {
+        meta('msapplication-TileImage', urlFactory(largest['src']));
+      }
+      meta('msapplication-TileColor', manifest['background_color']);
     }
 
     // nb: we check, but this won't override any _earlier_ (in DOM order) theme-color
