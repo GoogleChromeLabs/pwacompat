@@ -104,7 +104,7 @@
       if (!isSafariMobile) {
         return;
       }
-      const dim = parseInt(icon['sizes']);
+      const dim = parseInt(icon['sizes'], 10);
       if (dim < 120) {
         return;
       }
@@ -158,7 +158,6 @@
 
     const backgroundIsLight = shouldUseLightForeground(
         /** @type {string} */ (manifest['background_color']) || defaultSplashColor);
-    const title = manifest['name'] || manifest['short_name'] || document.title;
 
     // Add related iTunes app from manifest.
     const itunes = findAppleId(manifest['related_applications']);
@@ -166,8 +165,14 @@
 
     // General iOS meta tags.
     meta('apple-mobile-web-app-capable', isCapable);
-    meta('apple-mobile-web-app-title', title);
+    meta('apple-mobile-web-app-title', manifest['short_name'] || manifest['name']);
 
+    /**
+     * @param {{width: number, height: number}} arg 
+     * @param {string} orientation 
+     * @param {!Image|undefined} icon 
+     * @return {!HTMLLinkElement}
+     */
     function splashFor({width, height}, orientation, icon) {
       const ratio = window.devicePixelRatio;
       const ctx = contextForCanvas({width: width * ratio, height: height * ratio});
@@ -195,31 +200,46 @@
 
       ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
       ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
-      const textWidth = ctx.measureText(title).width;
-      ctx.fillText(title, textWidth / -2, 0);
 
-      const generatedSplash = document.createElement('link');
+      const title = manifest['name'] || manifest['short_name'] || document.title;
+      const textWidth = ctx.measureText(title).width;
+      if (textWidth < width * 0.8) {
+        // short-circuit, just draw entire string
+        ctx.fillText(title, textWidth / -2, 0);
+      } else {
+        // longer wrap case, draw once we have >0.7 width accumulated
+        const words = title.split(/\s+/g);
+        for (let i = 1; i <= words.length; ++i) {
+          const cand = words.slice(0, i).join(' ');
+          const measureWidth = ctx.measureText(cand).width;
+          if (i === words.length || measureWidth > width * 0.6) {
+            // render accumulated words
+            ctx.fillText(cand, measureWidth / -2, 0);
+            ctx.translate(0, (defaultSplashTextSize * 1.2));
+            words.splice(0, i);
+            i = 0;
+          }
+        }
+      }
+
+      const generatedSplash = /** @type {!HTMLLinkElement} */ (document.createElement('link'));
       generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
       generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
       generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
-
-      const img = document.createElement('img');
-      img.src = generatedSplash.getAttribute('href');
-      document.body.appendChild(img);
-      img.width = 200;
-
       return generatedSplash;
     }
 
     const previous = new Set();
+
+    /**
+     * @param {!Image=} applicationIcon
+     */
     function updateSplash(applicationIcon) {
       const portrait = splashFor(window.screen, 'portrait', applicationIcon);
       const landscape = splashFor({
         width: window.screen.height,
         height: window.screen.width,
       }, 'landscape', applicationIcon);
-
-      previous.forEach((prev) => prev.remove());
 
       document.head.appendChild(portrait);
       document.head.appendChild(landscape);
@@ -229,7 +249,7 @@
 
     // fetch the largest icon to generate a splash screen
     if (!appleTouchIcons.length) {
-      updateSplash(null);  // or no image, generate blank
+      updateSplash();  // or no image, generate blank
       return;
     }
     const icon = appleTouchIcons[0];
@@ -243,7 +263,7 @@
         return;
       }
       const redrawn = updateTransparent(img, manifest['background_color']);
-      if (redrawn === null) {
+      if (!redrawn) {
         return;  // the rest probably aren't interesting either
       }
       icon.href = redrawn;
@@ -261,7 +281,7 @@
 
     };
     img.onerror = () => {
-      updateSplash(null);  // something went wrong, generate blank image
+      updateSplash();  // something went wrong, generate blank image
     };
     img.src = icon.href;
   }
@@ -311,7 +331,7 @@
     } else {
       // Edge PWA
       const t = getEdgeTitleBar();
-      if (t === null) {
+      if (!t) {
         return;  // something went wrong, we had a UWP without titleBar
       }
       t.foregroundColor = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
@@ -320,13 +340,13 @@
   }
 
   /**
-   * @return {?ApplicationViewTitleBar}
+   * @return {!ApplicationViewTitleBar|undefined}
    */
   function getEdgeTitleBar() {
     try {
       return Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
     } catch (e) {
-      return null;
+      // implicit return undefined
     }
   }
 
@@ -383,7 +403,7 @@
     if (!force) {
       const imageData = context.getImageData(0, 0, 1, 1);
       if (imageData.data[3] == 255) {
-        return null;
+        return;
       }
     }
 
