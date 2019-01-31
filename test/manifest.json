@@ -5,9 +5,34 @@
     {
       "src": "logo-192.png",
       "sizes": "192x192"
-    }, {
+    },
+    {
+      "src": "logo-180.png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "logo-152.png",
+      "sizes": "152x152"
+    },
+    {
+      "src": "logo-144.png",
+      "sizes": "144x144"
+    },
+    {
       "src": "logo-128.png",
       "sizes": "128x128"
+    },
+    {
+      "src": "logo-128.png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "logo-120.png",
+      "sizes": "120x120"
+    },
+    {
+      "src": "logo-114.png",
+      "sizes": "114x114"
     }
   ],
   "display": "standalone",
@@ -21,7 +46,8 @@
       "platform": "play",
       "url": "https://play.google.com/store/apps/details?id=com.example.app1",
       "id": "com.example.app1"
-    }, {
+    },
+    {
       "platform": "itunes",
       "url": "https://itunes.apple.com/app/example-app1/id123456789"
     }
