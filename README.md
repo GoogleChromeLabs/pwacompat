@@ -35,6 +35,9 @@ For example:
 <link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
 ```
 
+If you're looking for the best load performance, you can also defer loading PWACompat until after your site has loaded.
+This is the approach taken in [Emojityper](https://github.com/emojityper/emojityper/blob/master/src/loader.js#L8).
+
 ## iOS
 
 PWACompat looks for a viewport tag which includes `viewport-fit=cover`, such as `<meta name="viewport" content="viewport-fit=cover">`.
