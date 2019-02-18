@@ -37,10 +37,17 @@ For example:
 
 ## iOS
 
+PWACompat looks for a viewport tag which includes `viewport-fit=cover`, such as `<meta name="viewport" content="viewport-fit=cover">`.
+If this tag is detected, PWACompat will generate a meta tag that makes your PWA load in fullscreen mode—this is particularly useful for devices with a notch.
+
+### Old Versions
+
 Prior [to iOS 12.2](https://twitter.com/mhartington/status/1089293403089784832), Mobile Safari opens external sites in the regular browser, meaning that flows like Oauth won't complete correctly.
 This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacompat/issues/15), but is an issue with PWAs on iOS generally.
 
-If you specify a viewport tag which includes `viewport-fit=cover`, such as `<meta name="viewport" content="viewport-fit=cover">`, PWACompat will generate a meta tag that makes your PWA load in fullscreen mode, particularly useful for notched devices.
+Prior to [iOS 11.3](https://medium.com/@firt/pwas-are-coming-to-ios-11-3-cupertino-we-have-a-problem-2ff49fd7d6ea), Mobile Safari would not respect the `start_url` paramater inside the manifest.
+If you want to emulate this behavior (and redirect the user to the start page), then you could detect `navigator.standalone` (indicating that your site is loaded in PWA mode) and set a flag in `window.sessionStorage`.
+If the flag is not yet set, then you should redirect to your site's start URL.
 
 # Details
 
