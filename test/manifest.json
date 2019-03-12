@@ -33,6 +33,10 @@
     {
       "src": "logo-114.png",
       "sizes": "114x114"
+    },
+    {
+      "src": "logo-16.png",
+      "sizes": "16x16"
     }
   ],
   "display": "standalone",
