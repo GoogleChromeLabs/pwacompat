@@ -16,6 +16,11 @@
 
 'use strict';
 
+// backtick string will crash IE11 etc and tell users to use minified version
+function unused() {
+  `Please don't use this file directly: include pwacompat.min.js instead!`;
+}
+
 (function() {
   // basic feature detection: from IE10+
   // also fallout on 'navigator.standalone', we _are_ an iOS PWA
@@ -56,7 +61,7 @@
         const data = /** @type {!Object<string, *>} */ (JSON.parse(xhr.responseText));
         process(data, hrefFactory);
       } catch (err) {
-        console.warn('pwacompat.js error', err)
+        console.warn('PWACompat error', err)
       }
     };
     xhr.send(null);
