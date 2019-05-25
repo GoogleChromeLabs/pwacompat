@@ -32,7 +32,7 @@ function testManifest(manifest, head='') {
   ${head}
 </head>
 <body>
-  <script src="${window.location.origin}/pwacompat.js"></script>
+  <script src="${window.location.origin}/src/pwacompat.js"></script>
   <script>
 const ready = new Promise((resolve) => {
   window.addEventListener('load', () => {
