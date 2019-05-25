@@ -16,8 +16,11 @@
 
 'use strict';
 
-// backtick string will crash IE11 etc and tell users to use minified version
+// WARNING
+// Don't use this file directly in production! Please include `pwacompat.min.js`!
+// WARNING
 function unused() {
+  // compiled out, but crashes IE11 early rather than within the code
   `Please don't use this file directly: include pwacompat.min.js instead!`;
 }
 

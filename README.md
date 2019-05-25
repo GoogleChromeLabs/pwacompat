@@ -4,7 +4,7 @@ PWACompat is a library that brings the [Web App Manifest](https://developers.goo
 This includes creating splash screens for Mobile Safari, and supporting IE/Edge's Pinned Sites feature.
 
 So, if you've created a `manifest.webmanifest` but want to have wide support everywhere else—through legacy HTML tags for icons and theming—look no further.
-Just include this script (or [bundle/serve it yourself](https://npmjs.com/package/pwacompat)) in your page:
+Just include the minified script `pwacompat.min.js` (or [bundle/serve it yourself](https://npmjs.com/package/pwacompat)) in your page:
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
