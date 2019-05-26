@@ -423,7 +423,7 @@ function unused() {
     // TODO: Chrome actually checks the four corners for some cases.
     if (!force) {
       const imageData = context.getImageData(0, 0, 1, 1);
-      if (imageData.data[3] == 255) {
+      if (imageData.data[3] === 255) {
         return;
       }
     }
