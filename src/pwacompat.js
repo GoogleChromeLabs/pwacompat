@@ -110,8 +110,9 @@ function unused() {
   function process(manifest, urlFactory) {
     const icons = manifest['icons'] || [];
     icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
-    const appleTouchIcons = icons.map((icon) => {
-      // create icons as byproduct
+
+    const appleTouchIconDefs = icons.map((icon) => {
+      // create regular link icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
       if (!isSafariMobile) {
@@ -122,13 +123,16 @@ function unused() {
         return;
       }
       attr['rel'] = 'apple-touch-icon';
-      return push('link', attr);
+      return attr;
     }).filter(Boolean);
 
-    if (appleTouchIcons.length) {
-      const last = appleTouchIcons[appleTouchIcons.length - 1];
-      last.removeAttribute('sizes');  // smallest is 'default', no sizes needed
-    }
+    // nb. create apple icons here to work around `removeAttribute('sizes')` crash on iOS 8 (!)
+    appleTouchIconDefs.forEach((attr, i) => {
+      if (i === appleTouchIconDefs.length - 1) {
+        delete attr['sizes'];  // smallest is 'default', no sizes needed
+      }
+      push('link', attr);
+    });
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
     const metaViewport = document.head.querySelector('meta[name="viewport"]');
