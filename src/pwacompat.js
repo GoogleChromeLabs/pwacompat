@@ -188,12 +188,13 @@ function unused() {
     meta('apple-mobile-web-app-title', manifest['short_name'] || manifest['name']);
 
     /**
-     * @param {{width: number, height: number}} arg 
+     * @param {number} width
+     * @param {number} height
      * @param {string} orientation 
      * @param {!Image|undefined} icon 
      * @return {function(): !HTMLLinkElement}
      */
-    function splashFor({width, height}, orientation, icon) {
+    function splashFor(width, height, orientation, icon) {
       const ratio = window.devicePixelRatio;
       const ctx = contextForCanvas({width: width * ratio, height: height * ratio});
 
@@ -255,11 +256,9 @@ function unused() {
      * @param {!Image=} applicationIcon
      */
     function renderBothSplash(applicationIcon) {
-      const portrait = splashFor(window.screen, 'portrait', applicationIcon);
-      const landscape = splashFor({
-        width: window.screen.height,
-        height: window.screen.width,
-      }, 'landscape', applicationIcon);
+      const s = window.screen;
+      const portrait = splashFor(s.availWidth, s.availHeight, 'portrait', applicationIcon);
+      const landscape = splashFor(s.availHeight, s.availWidth, 'landscape', applicationIcon);
 
       // this is particularly egregious setTimeout use, but the .toDataURL() is one of the
       // "bottlenecks" of PWACompat, so don't elongate any single frame more than needed.
