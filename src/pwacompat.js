@@ -19,6 +19,9 @@
 // WARNING
 // Don't use this file directly in production! Please include `pwacompat.min.js`!
 // WARNING
+/**
+ * @suppress {uselessCode}
+ */
 function unused() {
   // compiled out, but crashes IE11 early rather than within the code
   `Please don't use this file directly: include pwacompat.min.js instead!`;
@@ -46,14 +49,24 @@ function unused() {
   const isIEOrEdge = Boolean(userAgent.match(/(MSIE |Edge\/|Trident\/)/));
   const isEdgePWA = (typeof Windows !== 'undefined');
 
-  const internalStorage = window.sessionStorage || {};
-  const store = (k, v) => {
+  let internalStorage;
+  try {
+    internalStorage = window.sessionStorage;
+  } catch (e) {}
+  internalStorage = internalStorage || {};
+
+  /**
+   * @param {string} k
+   * @param {string=} v
+   * @return {string|undefined}
+   */
+  function store(k, v) {
     const key = '__pwacompat_' + k;
     if (v !== undefined) {
       internalStorage[key] = v;
     }
     return internalStorage[key];
-  };
+  }
 
   function setup() {
     const manifestEl = document.head.querySelector('link[rel="manifest"]');
@@ -213,7 +226,7 @@ function unused() {
      * @param {number} width
      * @param {number} height
      * @param {string} orientation 
-     * @param {!Image|undefined} icon 
+     * @param {?Image} icon
      * @return {function(): string}
      */
     function splashFor(width, height, orientation, icon) {
@@ -305,7 +318,7 @@ function unused() {
     const update = {'i': {}};
 
     /**
-     * @param {!Image=} applicationIcon
+     * @param {?Image} applicationIcon
      * @param {function(): void} done
      */
     function renderBothSplash(applicationIcon, done) {
@@ -357,8 +370,7 @@ function unused() {
     function fetchIconAndBuildSplash() {
       const icon = appleTouchIcons.shift();
       if (!icon) {
-        renderBothSplash();  // ran out of icons, render without one
-        saveUpdate();
+        renderBothSplash(null, saveUpdate);  // ran out of icons, render without one
         return;
       }
 
