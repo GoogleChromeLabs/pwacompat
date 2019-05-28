@@ -34,9 +34,11 @@ function unused() {
   const capableDisplayModes = ['standalone', 'fullscreen', 'minimal-ui'];
   const defaultSplashColor = '#f8f9fa';
   const defaultSplashTextSize = 24;
+  const defaultFontName = 'HelveticaNeue-CondensedBold';
   const idealSplashIconSize = 128;
   const minimumSplashIconSize = 48;
   const splashIconPadding = 32;
+  const appleIconSizeMin = 120;
 
   const userAgent = navigator.userAgent || '';
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
@@ -111,7 +113,7 @@ function unused() {
     const icons = manifest['icons'] || [];
     icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
 
-    const appleTouchIconDefs = icons.map((icon) => {
+    const appleTouchIcons = icons.map((icon) => {
       // create regular link icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
@@ -119,20 +121,15 @@ function unused() {
         return;
       }
       const dim = parseInt(icon['sizes'], 10);
-      if (dim < 120) {
+      if (dim < appleIconSizeMin) {
         return;
       }
       attr['rel'] = 'apple-touch-icon';
-      return attr;
-    }).filter(Boolean);
 
-    // nb. create apple icons here to work around `removeAttribute('sizes')` crash on iOS 8 (!)
-    appleTouchIconDefs.forEach((attr, i) => {
-      if (i === appleTouchIconDefs.length - 1) {
-        delete attr['sizes'];  // smallest is 'default', no sizes needed
-      }
-      push('link', attr);
-    });
+      // nb. we used to call `removeAttribute('sizes')` here, which crashed iOS 8
+      // ... sizes has been supported since iOS 4.2 (!)
+      return push('link', attr);
+    }).filter(Boolean);
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
     const metaViewport = document.head.querySelector('meta[name="viewport"]');
@@ -222,7 +219,7 @@ function unused() {
       }
 
       ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
-      ctx.font = `${defaultSplashTextSize}px HelveticaNeue-CondensedBold`;
+      ctx.font = `${defaultSplashTextSize}px ${defaultFontName}`;
 
       const title = manifest['name'] || manifest['short_name'] || document.title;
       const textWidth = ctx.measureText(title).width;
@@ -275,46 +272,53 @@ function unused() {
       }, 10);
     }
 
-    // fetch the largest icon to generate a splash screen
-    const icon = appleTouchIcons[0];
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onerror = () => {
-      renderBothSplash();  // something went wrong, generate blank image
-    };
+    const iconBackground = manifest['background_color'] || manifest['theme_color'];
 
-    // nothing to render, just do the error case
-    if (!appleTouchIcons.length) {
-      img.onerror();
-      return;
-    }
-
-    img.onload = () => {
-      renderBothSplash(img);
-
-      // also check and redraw icon
-      if (!manifest['background_color']) {
-        return;
-      }
-      const redrawn = updateTransparent(img, manifest['background_color']);
-      if (!redrawn) {
-        return;  // the rest probably aren't interesting either
-      }
-      icon.href = redrawn;
-
-      // fetch and fix all remaining icons
-      appleTouchIcons.slice(1).forEach((icon) => {
+    // fetches and redraws any remaining icons in appleTouchIcons (to have proper bg)
+    function redrawRemainingIcons() {
+      appleTouchIcons.forEach((icon) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          const redrawn = updateTransparent(img, manifest['background_color'], true);
-          icon.href = redrawn;
+          img.onload = null;
+          icon.href = updateTransparent(img, iconBackground, true);
         };
         img.src = icon.href;
       });
+    }
 
-    };
-    img.src = icon.href;
+    // called repeatedly until a valid icon is found
+    function fetchIconAndBuildSplash() {
+      const icon = appleTouchIcons.shift();
+      if (!icon) {
+        renderBothSplash();  // ran out of icons
+        return;
+      }
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onerror = () => void fetchIconAndBuildSplash();  // try again
+      img.onload = () => {
+        img.onload = null;  // iOS Safari might call this many times
+        renderBothSplash(img);
+
+        // also check and redraw icon
+        if (!iconBackground) {
+          return;  // ... not if there's no defined bg color
+        }
+        const redrawn = updateTransparent(img, iconBackground);
+        if (!redrawn) {
+          return;  // the rest probably aren't interesting either
+        }
+        icon.href = redrawn;
+
+        // fetch and fix all remaining icons
+        redrawRemainingIcons();
+      };
+
+      img.src = icon.href;  // trigger load
+    }
+    fetchIconAndBuildSplash();
   }
 
   function findAppleId(related) {
@@ -399,7 +403,7 @@ function unused() {
     const c = contextForCanvas();
     c.fillStyle = color;
     c.fillRect(0, 0, 1, 1);
-    return c.getImageData(0, 0, 1, 1).data;
+    return c.getImageData(0, 0, 1, 1).data || [];  // incase this fails for some reason
   }
 
   /**
