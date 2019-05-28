@@ -8,8 +8,8 @@ Just include the minified script `pwacompat.min.js` (or [bundle/serve it yoursel
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.8/pwacompat.min.js"
-    integrity="sha384-uONtBTCBzHKF84F6XvyC8S0gL8HTkAPeCyBNvfLfsqHh+Kd6s/kaS4BdmNQ5ktp1"
+<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.9/pwacompat.min.js"
+    integrity="sha384-VcI6S+HIsE80FVM1jgbd6WDFhzKYA0PecD/LcIyMQpT4fMJdijBh0I7Iblaacawc"
     crossorigin="anonymous"></script>
 ```
 
@@ -51,6 +51,11 @@ This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacom
 Prior to [iOS 11.3](https://medium.com/@firt/pwas-are-coming-to-ios-11-3-cupertino-we-have-a-problem-2ff49fd7d6ea), Mobile Safari would not respect the `start_url` paramater inside the manifest.
 If you want to emulate this behavior (and redirect the user to the start page), then you could detect `navigator.standalone` (indicating that your site is loaded in PWA mode) and set a flag in `window.sessionStorage`.
 If the flag is not yet set, then you should redirect to your site's start URL.
+
+## Session Storage
+
+PWACompat uses `window.sessionStorage` to cache your site's manifest (and on iOS, any updated icons and generated splash screens).
+This expires after a user navigates away from your page or closes their tab.
 
 # Details
 
