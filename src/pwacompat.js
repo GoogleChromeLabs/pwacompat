@@ -46,6 +46,15 @@ function unused() {
   const isIEOrEdge = Boolean(userAgent.match(/(MSIE |Edge\/|Trident\/)/));
   const isEdgePWA = (typeof Windows !== 'undefined');
 
+  const internalStorage = window.sessionStorage || {};
+  const store = (k, v) => {
+    const key = '__pwacompat_' + k;
+    if (v !== undefined) {
+      internalStorage[key] = v;
+    }
+    return internalStorage[key];
+  };
+
   function setup() {
     const manifestEl = document.head.querySelector('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
@@ -54,6 +63,17 @@ function unused() {
     }
 
     const hrefFactory = buildHrefFactory([manifestHref, window.location]);
+    const storedResponse = store('manifest');
+    if (storedResponse) {
+      try {
+        const data = /** @type {!Object<string, *>} */ (JSON.parse(storedResponse));
+        process(data, hrefFactory);
+      } catch (err) {
+        console.warn('PWACompat error', err)
+      }
+      return;
+    }
+
     const xhr = new XMLHttpRequest();
     xhr.open('GET', manifestHref);
 
@@ -64,6 +84,7 @@ function unused() {
     xhr.onload = () => {
       try {
         const data = /** @type {!Object<string, *>} */ (JSON.parse(xhr.responseText));
+        store('manifest', xhr.responseText);
         process(data, hrefFactory);
       } catch (err) {
         console.warn('PWACompat error', err)
@@ -176,8 +197,9 @@ function unused() {
       return;  // the rest of this file is for Mobile Safari
     }
 
-    const backgroundIsLight = shouldUseLightForeground(
-        /** @type {string} */ (manifest['background_color']) || defaultSplashColor);
+    const backgroundColor =
+        /** @type {string} */ (manifest['background_color']) || defaultSplashColor;
+    const backgroundIsLight = shouldUseLightForeground(backgroundColor);
 
     // Add related iTunes app from manifest.
     const itunes = findAppleId(manifest['related_applications']);
@@ -192,14 +214,14 @@ function unused() {
      * @param {number} height
      * @param {string} orientation 
      * @param {!Image|undefined} icon 
-     * @return {function(): !HTMLLinkElement}
+     * @return {function(): string}
      */
     function splashFor(width, height, orientation, icon) {
       const ratio = window.devicePixelRatio;
       const ctx = contextForCanvas({width: width * ratio, height: height * ratio});
 
       ctx.scale(ratio, ratio);
-      ctx.fillStyle = manifest['background_color'] || defaultSplashColor;
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, width, height);
       ctx.translate(width / 2, (height - splashIconPadding) / 2);
 
@@ -244,18 +266,49 @@ function unused() {
       }
 
       return () => {
-        const generatedSplash = /** @type {!HTMLLinkElement} */ (document.createElement('link'));
-        generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
-        generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
-        generatedSplash.setAttribute('href', ctx.canvas.toDataURL());
-        return generatedSplash;
+        const data = ctx.canvas.toDataURL();
+        appendSplash(orientation, data);
+        return data;
       };
     }
 
     /**
-     * @param {!Image=} applicationIcon
+     * @param {string} orientation
+     * @param {string} data
      */
-    function renderBothSplash(applicationIcon) {
+    function appendSplash(orientation, data) {
+      const generatedSplash = /** @type {!HTMLLinkElement} */ (document.createElement('link'));
+      generatedSplash.setAttribute('rel', 'apple-touch-startup-image');
+      generatedSplash.setAttribute('media', `(orientation: ${orientation})`);
+      generatedSplash.setAttribute('href', data);
+      document.head.appendChild(generatedSplash);
+    }
+
+    // fetch previous (session) iOS image updates
+    const rendered = store('iOS');
+    if (rendered) {
+      try {
+        const prev = /** @type {!Object<string, string>} */ (JSON.parse(rendered));
+        appendSplash('portrait', prev['p']);
+        appendSplash('landscape', prev['l']);
+        appleTouchIcons.forEach((icon) => {
+          const change = prev['i'][icon.href];
+          if (change) {
+            icon.href = change;
+          }
+        });
+        return;
+      } catch (e) {
+        // ignore, some problem with the JSON
+      }
+    }
+    const update = {'i': {}};
+
+    /**
+     * @param {!Image=} applicationIcon
+     * @param {function(): void} done
+     */
+    function renderBothSplash(applicationIcon, done) {
       const s = window.screen;
       const portrait = splashFor(s.availWidth, s.availHeight, 'portrait', applicationIcon);
       const landscape = splashFor(s.availHeight, s.availWidth, 'landscape', applicationIcon);
@@ -264,33 +317,48 @@ function unused() {
       // "bottlenecks" of PWACompat, so don't elongate any single frame more than needed.
 
       window.setTimeout(() => {
-        document.head.appendChild(portrait());
+        update['p'] = portrait();
         window.setTimeout(() => {
-          document.head.appendChild(landscape());
+          update['l'] = landscape();
+          done();
         }, 10);
       }, 10);
     }
 
-    const iconBackground = manifest['background_color'] || manifest['theme_color'];
-
     // fetches and redraws any remaining icons in appleTouchIcons (to have proper bg)
-    function redrawRemainingIcons() {
+    function redrawRemainingIcons(done) {
+      let left = appleTouchIcons.length + 1;
+      const check = () => {
+        if (!--left) {
+          done();
+        }
+      };
+      check();
       appleTouchIcons.forEach((icon) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
+        img.onerror = check;
         img.onload = () => {
           img.onload = null;
-          icon.href = updateTransparent(img, iconBackground, true);
+          icon.href = updateTransparent(img, backgroundColor, true);
+          update['i'][img.src] = icon.href;
+          check();
         };
         img.src = icon.href;
       });
+    }
+
+    // write the update to sessionStorage
+    function saveUpdate() {
+      store('iOS', JSON.stringify(update));
     }
 
     // called repeatedly until a valid icon is found
     function fetchIconAndBuildSplash() {
       const icon = appleTouchIcons.shift();
       if (!icon) {
-        renderBothSplash();  // ran out of icons
+        renderBothSplash();  // ran out of icons, render without one
+        saveUpdate();
         return;
       }
 
@@ -299,20 +367,17 @@ function unused() {
       img.onerror = () => void fetchIconAndBuildSplash();  // try again
       img.onload = () => {
         img.onload = null;  // iOS Safari might call this many times
-        renderBothSplash(img);
-
-        // also check and redraw icon
-        if (!iconBackground) {
-          return;  // ... not if there's no defined bg color
-        }
-        const redrawn = updateTransparent(img, iconBackground);
-        if (!redrawn) {
-          return;  // the rest probably aren't interesting either
-        }
-        icon.href = redrawn;
-
-        // fetch and fix all remaining icons
-        redrawRemainingIcons();
+        renderBothSplash(img, () => {
+          // ... if the icon used for splash changed, redraw others too
+          const redrawn = manifest['background_color'] && updateTransparent(img, backgroundColor);
+          if (redrawn) {
+            icon.href = redrawn;
+            update['i'][img.src] = redrawn;
+            redrawRemainingIcons(saveUpdate);
+          } else {
+            saveUpdate();
+          }
+        });
       };
 
       img.src = icon.href;  // trigger load
