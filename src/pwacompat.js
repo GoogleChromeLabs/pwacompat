@@ -145,9 +145,11 @@ function unused() {
    */
   function process(manifest, urlFactory) {
     const icons = manifest['icons'] || [];
+    const maskable = icons.filter((icon) => (icon.purpose || '').includes('maskable'));
     icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
+    maskable.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));
 
-    const appleTouchIcons = icons.map((icon) => {
+    const appleTouchIcons = (maskable.length > 0 ? maskable : icons).map((icon) => {
       // create regular link icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
       push('link', attr);
@@ -225,7 +227,7 @@ function unused() {
     /**
      * @param {number} width
      * @param {number} height
-     * @param {string} orientation 
+     * @param {string} orientation
      * @param {?Image} icon
      * @return {function(): string}
      */
