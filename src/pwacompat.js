@@ -140,14 +140,26 @@ function unused() {
   }
 
   /**
+   * @param {object} icon
+   * @param {string} icon.sizes
+   */
+  function largestSize(icon) {
+    const sizes = icon.sizes.split(' ').map((size) => {
+      if (size === 'any') return Infinity;
+      return parseInt(size, 10) || 0; // NaN is falsey
+    });
+    return Math.max(...sizes);
+  }
+
+  /**
    * @param {!Object<string, (string|*)>} manifest
    * @param {function(string): string} urlFactory
    */
   function process(manifest, urlFactory) {
     const icons = manifest['icons'] || [];
     const maskable = icons.filter((icon) => (icon.purpose || '').includes('maskable'));
-    icons.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));  // largest first
-    maskable.sort((a, b) => parseInt(b.sizes, 10) - parseInt(a.sizes, 10));
+    icons.sort((a, b) => largestSize(b) - largestSize(a));  // largest first
+    maskable.sort((a, b) => largestSize(b) - largestSize(a));
 
     const appleTouchIcons = (maskable.length > 0 ? maskable : icons).map((icon) => {
       // create regular link icons as byproduct
@@ -156,7 +168,7 @@ function unused() {
       if (!isSafariMobile) {
         return;
       }
-      const dim = parseInt(icon['sizes'], 10);
+      const dim = largestSize(icon);
       if (dim < appleIconSizeMin) {
         return;
       }
