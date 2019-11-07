@@ -140,12 +140,13 @@ function unused() {
   }
 
   /**
-   * @param {object} icon
-   * @param {string} icon.sizes
+   * @param {{sizes: string}} icon
    */
   function largestSize(icon) {
-    const sizes = icon.sizes.split(' ').map((size) => {
-      if (size === 'any') return Infinity;
+    const sizes = icon.sizes.split(/\s+/g).map((size) => {
+      if (size === 'any') {
+        return Infinity;
+      }
       return parseInt(size, 10) || 0; // NaN is falsey
     });
     return Math.max(...sizes);
