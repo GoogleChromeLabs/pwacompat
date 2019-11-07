@@ -45,7 +45,7 @@ function unused() {
 
   const userAgent = navigator.userAgent || '';
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
-  const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1);
+  const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1 || 'standalone' in navigator);
   const isIEOrEdge = Boolean(userAgent.match(/(MSIE |Edge\/|Trident\/)/));
   const isEdgePWA = (typeof Windows !== 'undefined');
 
