@@ -16,18 +16,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <style>
+    link[rel="manifest"] {
+      --pwacompat-splash-font: bold 24px Cursive;
+    }
+  </style>
   <title>PWA Compat</title>
   <meta name="viewport" content="width=device-width, user-scalable=no" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="blue" />
   <meta name="theme-color" content="red" />
-  <script src="../pwacompat.min.js"></script>
+  <script src="../src/pwacompat.js"></script>
 </head>
 <body>
 
 <p>
   This is a test of <a href="https://github.com/GoogleChrome/pwacompat">PWA Compat</a>.
   Try adding this site to your home screen on an iOS device to see correctly rendered icons and dynamic splash screens!
+  It uses the uncompiled file, for testing.
 </p>
 <p>
   Links to <a href="other.html">local page</a>, <a href="nocode.html">page without PWA Compat</a> or an <a href="https://google.com">external site</a>.

@@ -1,19 +1,17 @@
 [![Build Status](https://travis-ci.org/GoogleChromeLabs/pwacompat.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwacompat)
 
 PWACompat is a library that brings the [Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/) to non-compliant browsers for better [Progressive Web Apps](https://en.wikipedia.org/wiki/Progressive_Web_Apps).
-This includes creating splash screens for Mobile Safari, and supporting IE/Edge's Pinned Sites feature.
+This mostly means creating splash screens and icons for Mobile Safari, as well as supporting IE/Edge's Pinned Sites feature.
 
 So, if you've created a `manifest.webmanifest` but want to have wide support everywhere else—through legacy HTML tags for icons and theming—look no further.
-Just include the minified script `pwacompat.min.js` (or [bundle/serve it yourself](https://npmjs.com/package/pwacompat)) in your page:
+We recommend including it from a CDN to get the latest version, or [bundling it yourself](https://npmjs.com/package/pwacompat):
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
-<script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.10/pwacompat.min.js"
-    integrity="sha384-I1iiXcTSM6j2xczpDckV+qhhbqiip6FyD6R5CpuqNaWXvyDUvXN5ZhIiyLQ7uuTh"
-    crossorigin="anonymous"></script>
+<script async src="https://unpkg.com/pwacompat" crossorigin="anonymous"></script>
 ```
 
-And you're done! 🎉📄
+And you're done^! 🎉📄
 
 For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and mobile-proof your site](https://medium.com/dev-channel/how-to-add-a-web-app-manifest-and-mobile-proof-your-site-450e6e485638), watch 📹 [theming as part of The Standard](https://www.youtube.com/watch?v=5fEMTxpA6BA), or check out 📬 [the Web Fundamentals post on PWACompat](https://developers.google.com/web/updates/2018/07/pwacompat).
 
@@ -22,7 +20,7 @@ For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and m
   <small><em>PWACompat takes your regular manifest and enhances other browsers</em></small>
 </p>
 
-# Best Practice &amp; Caveats
+# ^Best Practice &amp; Caveats
 
 While PWACompat can generate most icons, meta tags etc that your PWA might need, it's best practice to include at least one `<link rel="icon" ... />`.
 This is standardized and older browsers, along with search engines, may use it from your page to display an icon.
@@ -35,22 +33,34 @@ For example:
 <link rel="icon" type="image/png" href="res/icon-128.png" sizes="128x128" />
 ```
 
-If you're looking for the best load performance, you can also defer loading PWACompat until after your site has loaded.
-This is the approach taken in [Emojityper](https://github.com/emojityper/emojityper/blob/master/src/loader.js#L8).
+You should also consider only loading PWACompat after your site is loaded, as adding your site to a homescreen is a pretty rare operation.
+This is the approach taken on [v8.dev](https://github.com/v8/v8.dev/pull/310/files) and [Emojityper](https://github.com/emojityper/emojityper/blob/master/src/loader.js#L8).
 
 ## iOS
 
 PWACompat looks for a viewport tag which includes `viewport-fit=cover`, such as `<meta name="viewport" content="viewport-fit=cover">`.
 If this tag is detected, PWACompat will generate a meta tag that makes your PWA load in fullscreen mode—this is particularly useful for devices with a notch.
 
+You can customize the generated splash screen's font by using a CSS Variable.
+For example:
+
+```html
+<style>
+  link[rel="manifest"] {
+     --pwacompat-splash-font: 24px Verdana;
+  }
+</style>
+```
+
+This is set directly as a [canvas font](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font), so you must as a minimum include size _and_ family.
+The default value is "24px HelveticaNeue-CondensedBold".
+
+⚠️ PWACompat won't wait for your fonts to load, so if you're using custom fonts, be sure to only load the library after they're ready.
+
 ### Old Versions
 
 Prior [to iOS 12.2](https://twitter.com/mhartington/status/1089293403089784832), Mobile Safari opens external sites in the regular browser, meaning that flows like Oauth won't complete correctly.
 This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacompat/issues/15), but is an issue with PWAs on iOS generally.
-
-Prior to [iOS 11.3](https://medium.com/@firt/pwas-are-coming-to-ios-11-3-cupertino-we-have-a-problem-2ff49fd7d6ea), Mobile Safari would not respect the `start_url` paramater inside the manifest.
-If you want to emulate this behavior (and redirect the user to the start page), then you could detect `navigator.standalone` (indicating that your site is loaded in PWA mode) and set a flag in `window.sessionStorage`.
-If the flag is not yet set, then you should redirect to your site's start URL.
 
 ## Session Storage
 

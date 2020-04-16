@@ -34,21 +34,24 @@ function unused() {
     return;
   }
 
+  const debug = false;
+
   const capableDisplayModes = ['standalone', 'fullscreen', 'minimal-ui'];
   const defaultSplashColor = '#f8f9fa';
   const defaultSplashTextSize = 24;
   const defaultFontName = 'HelveticaNeue-CondensedBold';
   const idealSplashIconSize = 128;
   const minimumSplashIconSize = 48;
-  const splashIconPadding = 32;
+  const splashIconPadding = 20;
   const appleIconSizeMin = 120;
 
   const userAgent = navigator.userAgent || '';
   const isSafari = (navigator.vendor && navigator.vendor.indexOf('Apple') !== -1);
-  const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1 || 'standalone' in navigator);
+  const isSafariMobile = isSafari && (userAgent.indexOf('Mobile/') !== -1 || 'standalone' in navigator) || debug;
   const isIEOrEdge = Boolean(userAgent.match(/(MSIE |Edge\/|Trident\/)/));
   const isEdgePWA = (typeof Windows !== 'undefined');
 
+  let manifestEl;  // we need this later, not just for JSON
   let internalStorage;
   try {
     internalStorage = window.sessionStorage;
@@ -69,7 +72,7 @@ function unused() {
   }
 
   function setup() {
-    const manifestEl = document.head.querySelector('link[rel="manifest"]');
+    manifestEl = document.head.querySelector('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
     if (!manifestHref) {
       throw `can't find <link rel="manifest" href=".." />'`;
@@ -82,7 +85,7 @@ function unused() {
         const data = /** @type {!Object<string, *>} */ (JSON.parse(storedResponse));
         process(data, hrefFactory);
       } catch (err) {
-        console.warn('PWACompat error', err)
+        console.warn('PWACompat error', err);
       }
       return;
     }
@@ -100,7 +103,7 @@ function unused() {
         store('manifest', xhr.responseText);
         process(data, hrefFactory);
       } catch (err) {
-        console.warn('PWACompat error', err)
+        console.warn('PWACompat error', err);
       }
     };
     xhr.send(null);
@@ -272,11 +275,18 @@ function unused() {
       ctx.fillStyle = backgroundIsLight ? 'white' : 'black';
       ctx.font = `${defaultSplashTextSize}px ${defaultFontName}`;
 
+      // Set the user-requested font; if it's invalid, the set will fail.
+      const s = window.getComputedStyle(manifestEl);
+      ctx.font = s.getPropertyValue('--pwacompat-splash-font'); // blank for old browsers
+
       const title = manifest['name'] || manifest['short_name'] || document.title;
-      const textWidth = ctx.measureText(title).width;
-      if (textWidth < width * 0.8) {
+      const measure = ctx.measureText(title);
+      const textHeight = (measure.actualBoundingBoxAscent || defaultSplashTextSize);
+      ctx.translate(0, textHeight);
+
+      if (measure.width < width * 0.8) {
         // short-circuit, just draw entire string
-        ctx.fillText(title, textWidth / -2, 0);
+        ctx.fillText(title, measure.width / -2, 0);
       } else {
         // longer wrap case, draw once we have >0.7 width accumulated
         const words = title.split(/\s+/g);
@@ -286,7 +296,7 @@ function unused() {
           if (i === words.length || measureWidth > width * 0.6) {
             // render accumulated words
             ctx.fillText(cand, measureWidth / -2, 0);
-            ctx.translate(0, (defaultSplashTextSize * 1.2));
+            ctx.translate(0, textHeight * 1.2);
             words.splice(0, i);
             i = 0;
           }
@@ -295,6 +305,11 @@ function unused() {
 
       return () => {
         const data = ctx.canvas.toDataURL();
+        if (debug) {
+          const img = document.createElement('img');
+          img.src = data;
+          document.body.append(img);
+        }
         appendSplash(orientation, data);
         return data;
       };
@@ -314,7 +329,7 @@ function unused() {
 
     // fetch previous (session) iOS image updates
     const rendered = store('iOS');
-    if (rendered) {
+    if (!debug && rendered) {
       try {
         const prev = /** @type {!Object<string, string>} */ (JSON.parse(rendered));
         appendSplash('portrait', prev['p']);

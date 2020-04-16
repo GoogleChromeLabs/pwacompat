@@ -1,4 +1,6 @@
+.travis.yml
 suite.*
 testrunner.*
 yarn.lock
 test/
+src/suite.*
