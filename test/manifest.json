@@ -35,6 +35,10 @@
       "sizes": "114x114"
     },
     {
+      "src": "logo-32.png",
+      "sizes": "32x32"
+    },
+    {
       "src": "logo-16.png",
       "sizes": "16x16"
     }
