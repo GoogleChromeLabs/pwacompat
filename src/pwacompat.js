@@ -159,7 +159,7 @@ function unused() {
     if (localName === 'meta' && isMetaPresent(attr.name)) {
       return;
     }
-    if (localName === 'link' && isLinkPresent(attr.link)) {
+    if (localName === 'link' && isLinkPresent(attr.href)) {
       return
     }
     const node = document.createElement(localName);
