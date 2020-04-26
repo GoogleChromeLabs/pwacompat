@@ -109,5 +109,21 @@ suite('pwacompat', () => {
     assert.isNotNull(r.querySelector('link[rel="icon"][href="logo-128.png"][sizes="128x128"]'));
   });
 
+  suite('prevent creating existing nodes, example: mobile-web-app-capable', () => {
+    const manifest = {
+      display: 'standalone' // pwacompat should add 'meta[name="mobile-web-app-capable"][content="yes"]'
+    };
+    test('should add `mobile-web-app-capable`', async () => {
+      const r = await testManifest(manifest);
+      assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
+    });
+    test('should not add `mobile-web-app-capable` if it was present beforehand', async () => {
+      const r = await testManifest(manifest, '<meta name="mobile-web-app-capable" content="existing">');
+      assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="existing"]'));
+      assert.isNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
+      assert.lengthOf(r.querySelectorAll('meta[name="mobile-web-app-capable"]'), 1, 'found only one node')
+    });
+  })
+
   // TODO(samthor): Emulate/force userAgent and other environments to test Edge/iOS.
 });
