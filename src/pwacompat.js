@@ -77,10 +77,11 @@ function unused() {
 
   /**
    * Checks if link is present
-   * @param {string} href link's href
+   * @param {string} attr link's attribute, `href by default`
+   * @param {string} href link's attr value
    */
-  function isLinkPresent(href) {
-    return !!getElementInHead('link[href="' + href + '"]');
+  function isLinkPresent(attr = 'href', value) {
+    return !!getElementInHead('link[' + attr + '="' + value + '"]');
   }
 
   /**
@@ -159,7 +160,13 @@ function unused() {
     if (localName === 'meta' && isMetaPresent(attr.name)) {
       return;
     }
-    if (localName === 'link' && isLinkPresent(attr.href)) {
+    // in case of links, comparing either href or sizes (because it's used for icons too)
+    if (
+      localName === 'link' &&
+      (isLinkPresent('href', attr.href) ||
+        (attr.sizes && isLinkPresent('sizes', attr.sizes))
+      )
+    ) {
       return
     }
     const node = document.createElement(localName);
