@@ -151,6 +151,7 @@ function unused() {
 
   /**
    * Adds an element in the <head> if it's not present already
+   * nb: we check, but this won't override any _earlier_ (in DOM order)
    * @param {string} localName tag name
    * @param {*} attr key-value collection of attributes
    */
@@ -243,10 +244,7 @@ function unused() {
       meta('msapplication-TileColor', manifest['background_color']);
     }
 
-    // nb: we check, but this won't override any _earlier_ (in DOM order) theme-color
-    if (!isMetaPresent('theme-color')) {
-      meta('theme-color', manifest['theme_color']);
-    }
+    meta('theme-color', manifest['theme_color']);
 
     if (!isSafariMobile) {
       // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
