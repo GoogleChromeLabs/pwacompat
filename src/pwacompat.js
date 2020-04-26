@@ -59,6 +59,31 @@ function unused() {
   internalStorage = internalStorage || {};
 
   /**
+   * Retrieves element in head if available, otherwise null
+   * @param {string} selector CSS selector
+   * @returns {Element|null}
+   */
+  function getElementInHead(selector) {
+    return document.head.querySelector(selector);
+  }
+
+  /**
+   * Checks if meta tag is present
+   * @param {string} name meta's name
+   */
+  function isMetaPresent(name) {
+    return !!getElementInHead('meta[name="' + name + '"]');
+  }
+
+  /**
+   * Checks if link is present
+   * @param {string} href link's href
+   */
+  function isLinkPresent(href) {
+    return !!getElementInHead('link[href="' + href + '"]');
+  }
+
+  /**
    * @param {string} k
    * @param {string=} v
    * @return {string|undefined}
@@ -72,7 +97,7 @@ function unused() {
   }
 
   function setup() {
-    manifestEl = document.head.querySelector('link[rel="manifest"]');
+    manifestEl = getElementInHead('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
     if (!manifestHref) {
       throw `can't find <link rel="manifest" href=".." />'`;
@@ -124,7 +149,18 @@ function unused() {
     return (part) => part || '';
   }
 
+  /**
+   * Adds an element in the <head> if it's not present already
+   * @param {string} localName tag name
+   * @param {*} attr key-value collection of attributes
+   */
   function push(localName, attr) {
+    if (localName === 'meta' && isMetaPresent(attr.name)) {
+      return;
+    }
+    if (localName === 'link' && isLinkPresent(attr.link)) {
+      return
+    }
     const node = document.createElement(localName);
     for (const k in attr) {
       node.setAttribute(k, attr[k]);
@@ -184,7 +220,7 @@ function unused() {
     }).filter(Boolean);
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
-    const metaViewport = document.head.querySelector('meta[name="viewport"]');
+    const metaViewport = getElementInHead('meta[name="viewport"]');
     const viewport = metaViewport && metaViewport.content || '';
     const viewportFitCover = Boolean(viewport.match(/\bviewport-fit\s*=\s*cover\b/));
 
@@ -208,7 +244,7 @@ function unused() {
     }
 
     // nb: we check, but this won't override any _earlier_ (in DOM order) theme-color
-    if (!document.head.querySelector('[name="theme-color"]')) {
+    if (!isMetaPresent('theme-color')) {
       meta('theme-color', manifest['theme_color']);
     }
 
