@@ -154,7 +154,7 @@ function unused() {
    * Adds an element in the <head> if it's not present already
    * nb: we check, but this won't override any _earlier_ (in DOM order)
    * @param {string} localName tag name
-   * @param {*} attr key-value collection of attributes
+   * @param {!Object<string>} attr key-value collection of attributes
    */
   function push(localName, attr) {
     if (localName === 'meta' && isMetaPresent(attr.name)) {
