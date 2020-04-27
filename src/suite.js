@@ -109,5 +109,36 @@ suite('pwacompat', () => {
     assert.isNotNull(r.querySelector('link[rel="icon"][href="logo-128.png"][sizes="128x128"]'));
   });
 
+  test('should add meta `mobile-web-app-capable`', async () => {
+    const manifest = {
+      display: 'standalone'
+    };
+    const r = await testManifest(manifest);
+    assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
+  });
+
+  test('should not add meta `mobile-web-app-capable` if it was present beforehand', async () => {
+    const manifest = {
+      display: 'standalone' // pwacompat should add 'meta[name="mobile-web-app-capable"][content="yes"]'
+    };
+    const r = await testManifest(manifest, '<meta name="mobile-web-app-capable" content="existing">');
+    assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="existing"]'));
+    assert.isNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
+    assert.lengthOf(r.querySelectorAll('meta[name="mobile-web-app-capable"]'), 1, 'found only one node');
+  });
+
+  test('should not add link icon if it was present beforehand', async () => {
+    const manifest = {
+      'icons': [{
+          'src': 'NEW-192.png',
+          'sizes': '192x192'
+        },
+      ],
+    };
+    const r = await testManifest(manifest, '<link rel="icon" href="EXISTING-192.png" sizes="192x192">');
+    assert.isNotNull(r.querySelector('link[rel="icon"][href="EXISTING-192.png"][sizes="192x192"]'));
+    assert.isNull(r.querySelector('link[rel="icon"][href="NEW-192.png"][sizes="192x192"]'));
+  });
+
   // TODO(samthor): Emulate/force userAgent and other environments to test Edge/iOS.
 });

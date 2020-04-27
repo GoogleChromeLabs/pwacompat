@@ -59,6 +59,32 @@ function unused() {
   internalStorage = internalStorage || {};
 
   /**
+   * Retrieves element in head if available, otherwise null
+   * @param {string} selector CSS selector
+   * @returns {Element|null}
+   */
+  function getElementInHead(selector) {
+    return document.head.querySelector(selector);
+  }
+
+  /**
+   * Checks if meta tag is present
+   * @param {string} name meta's name
+   */
+  function isMetaPresent(name) {
+    return !!getElementInHead('meta[name="' + name + '"]');
+  }
+
+  /**
+   * Checks if link is present
+   * @param {string} attr link's attribute, `href by default`
+   * @param {string} href link's attr value
+   */
+  function isLinkPresent(attr = 'href', value) {
+    return !!getElementInHead('link[' + attr + '="' + value + '"]');
+  }
+
+  /**
    * @param {string} k
    * @param {string=} v
    * @return {string|undefined}
@@ -72,7 +98,7 @@ function unused() {
   }
 
   function setup() {
-    manifestEl = document.head.querySelector('link[rel="manifest"]');
+    manifestEl = getElementInHead('link[rel="manifest"]');
     const manifestHref = manifestEl ? manifestEl.href : '';
     if (!manifestHref) {
       throw `can't find <link rel="manifest" href=".." />'`;
@@ -124,7 +150,25 @@ function unused() {
     return (part) => part || '';
   }
 
+  /**
+   * Adds an element in the <head> if it's not present already
+   * nb: we check, but this won't override any _earlier_ (in DOM order)
+   * @param {string} localName tag name
+   * @param {!Object<string>} attr key-value collection of attributes
+   */
   function push(localName, attr) {
+    if (localName === 'meta' && isMetaPresent(attr.name)) {
+      return;
+    }
+    // in case of links, comparing either href or sizes (because it's used for icons too)
+    if (
+      localName === 'link' &&
+      (isLinkPresent('href', attr.href) ||
+        (attr.sizes && isLinkPresent('sizes', attr.sizes))
+      )
+    ) {
+      return;
+    }
     const node = document.createElement(localName);
     for (const k in attr) {
       node.setAttribute(k, attr[k]);
@@ -184,7 +228,7 @@ function unused() {
     }).filter(Boolean);
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
-    const metaViewport = document.head.querySelector('meta[name="viewport"]');
+    const metaViewport = getElementInHead('meta[name="viewport"]');
     const viewport = metaViewport && metaViewport.content || '';
     const viewportFitCover = Boolean(viewport.match(/\bviewport-fit\s*=\s*cover\b/));
 
@@ -207,10 +251,7 @@ function unused() {
       meta('msapplication-TileColor', manifest['background_color']);
     }
 
-    // nb: we check, but this won't override any _earlier_ (in DOM order) theme-color
-    if (!document.head.querySelector('[name="theme-color"]')) {
-      meta('theme-color', manifest['theme_color']);
-    }
+    meta('theme-color', manifest['theme_color']);
 
     if (!isSafariMobile) {
       // TODO(samthor): We don't detect QQ or UC, we just set the vars anyway.
