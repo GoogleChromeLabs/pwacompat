@@ -167,7 +167,7 @@ function unused() {
         (attr.sizes && isLinkPresent('sizes', attr.sizes))
       )
     ) {
-      return
+      return;
     }
     const node = document.createElement(localName);
     for (const k in attr) {
