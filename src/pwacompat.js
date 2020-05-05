@@ -54,14 +54,14 @@ function unused() {
   let manifestEl;  // we need this later, not just for JSON
   let internalStorage;
   try {
-    internalStorage = window.sessionStorage;
+    internalStorage = sessionStorage;
   } catch (e) {}
   internalStorage = internalStorage || {};
 
   /**
    * Retrieves element in head if available, otherwise null
    * @param {string} selector CSS selector
-   * @returns {Element|null}
+   * @return {?Element}
    */
   function getElementInHead(selector) {
     return document.head.querySelector(selector);
@@ -70,18 +70,24 @@ function unused() {
   /**
    * Checks if meta tag is present
    * @param {string} name meta's name
+   * @return {boolean}
    */
   function isMetaPresent(name) {
-    return !!getElementInHead('meta[name="' + name + '"]');
+    return Boolean(getElementInHead('meta[name="' + name + '"]'));
   }
 
   /**
    * Checks if link is present
-   * @param {string} attr link's attribute, `href by default`
-   * @param {string} href link's attr value
+   * @param {string} attr link's attribute
+   * @param {string} value link's attr value
+   * @return {boolean}
    */
-  function isLinkPresent(attr = 'href', value) {
-    return !!getElementInHead('link[' + attr + '="' + value + '"]');
+  function isLinkPresent(attr, value) {
+    if (/["\\]/.test(value)) {
+      // This should practically never happen. Don't allow quotes or escapes here.
+      return false;
+    }
+    return Boolean(getElementInHead('link[' + attr + '="' + value + '"]'));
   }
 
   /**
@@ -104,7 +110,7 @@ function unused() {
       throw `can't find <link rel="manifest" href=".." />'`;
     }
 
-    const hrefFactory = buildHrefFactory([manifestHref, window.location]);
+    const hrefFactory = buildHrefFactory([manifestHref, location]);
     const storedResponse = store('manifest');
     if (storedResponse) {
       try {
@@ -317,7 +323,7 @@ function unused() {
       ctx.font = `${defaultSplashTextSize}px ${defaultFontName}`;
 
       // Set the user-requested font; if it's invalid, the set will fail.
-      const s = window.getComputedStyle(manifestEl);
+      const s = getComputedStyle(manifestEl);
       ctx.font = s.getPropertyValue('--pwacompat-splash-font'); // blank for old browsers
 
       const title = manifest['name'] || manifest['short_name'] || document.title;
@@ -400,9 +406,9 @@ function unused() {
       // this is particularly egregious setTimeout use, but the .toDataURL() is one of the
       // "bottlenecks" of PWACompat, so don't elongate any single frame more than needed.
 
-      window.setTimeout(() => {
+      setTimeout(() => {
         update['p'] = portrait();
-        window.setTimeout(() => {
+        setTimeout(() => {
           update['l'] = landscape();
           done();
         }, 10);
