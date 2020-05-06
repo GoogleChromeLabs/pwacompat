@@ -23,11 +23,14 @@
   },
   "homepage": "https://github.com/GoogleChrome/pwacompat",
   "scripts": {
-    "test": "mocha-headless-server src/suite.html"
+    "test": "headless-test src/test.js"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^5.2.0",
-    "mocha-headless-server": "^0.1.1"
+    "headless-test": "^1.0.2"
+  },
+  "resolutions": {
+    "**/minimist": "^1.2.5"
   }
 }
