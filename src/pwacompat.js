@@ -64,7 +64,13 @@ function unused() {
    * @return {?Element}
    */
   function getElementInHead(selector) {
-    return document.head.querySelector(selector);
+    // It's possible to pass "bad" attr or values here (originally from the manifest); just
+    // return null if there's something wrong.
+    try {
+      return document.head.querySelector(selector);
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
@@ -83,10 +89,6 @@ function unused() {
    * @return {boolean}
    */
   function isLinkPresent(attr, value) {
-    if (/["\\]/.test(value)) {
-      // This should practically never happen. Don't allow quotes or escapes here.
-      return false;
-    }
     return Boolean(getElementInHead('link[' + attr + '="' + value + '"]'));
   }
 
@@ -202,7 +204,7 @@ function unused() {
       }
       return parseInt(size, 10) || 0; // NaN is falsey
     });
-    return Math.max(...sizes);
+    return Math.max.apply(null, sizes); // don't use ... as Closure inserts additional code
   }
 
   /**
@@ -516,7 +518,9 @@ function unused() {
       if (!t) {
         return;  // something went wrong, we had a UWP without titleBar
       }
-      t.foregroundColor = colorToWindowsRGBA(themeIsLight ? 'black' : 'white');
+      // Foreground is black if theme is light, otherwise white.
+      const v = themeIsLight ? 255 : 0;
+      t.foregroundColor = /** @type {WindowsColor} */ ({'r': v, 'g': v, 'b': v, 'a': 255});
       t.backgroundColor = colorToWindowsRGBA(color);
     }
   }
