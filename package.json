@@ -1,6 +1,6 @@
 {
   "name": "pwacompat",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "description": "library to bring Web App Manifest contents to non-compliant browsers",
   "main": "pwacompat.min.js",
   "module": "src/pwacompat.js",
