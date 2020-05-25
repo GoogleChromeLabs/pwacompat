@@ -74,25 +74,6 @@ function unused() {
   }
 
   /**
-   * Checks if meta tag is present
-   * @param {string} name meta's name
-   * @return {boolean}
-   */
-  function isMetaPresent(name) {
-    return Boolean(getElementInHead('meta[name="' + name + '"]'));
-  }
-
-  /**
-   * Checks if link is present
-   * @param {string} attr link's attribute
-   * @param {string} value link's attr value
-   * @return {boolean}
-   */
-  function isLinkPresent(attr, value) {
-    return Boolean(getElementInHead('link[' + attr + '="' + value + '"]'));
-  }
-
-  /**
    * @param {string} k
    * @param {string=} v
    * @return {string|undefined}
@@ -159,22 +140,13 @@ function unused() {
   }
 
   /**
-   * Adds an element in the <head> if it's not present already
-   * nb: we check, but this won't override any _earlier_ (in DOM order)
+   * Adds an element in the <head> if it's not present already based on the passed check.
    * @param {string} localName tag name
    * @param {!Object<string>} attr key-value collection of attributes
+   * @param {string} check to apply to the tag
    */
-  function push(localName, attr) {
-    if (localName === 'meta' && isMetaPresent(attr.name)) {
-      return;
-    }
-    // in case of links, comparing either href or sizes (because it's used for icons too)
-    if (
-      localName === 'link' &&
-      (isLinkPresent('href', attr.href) ||
-        (attr.sizes && isLinkPresent('sizes', attr.sizes))
-      )
-    ) {
+  function push(localName, attr, check) {
+    if (getElementInHead(localName + check)) {
       return;
     }
     const node = document.createElement(localName);
@@ -190,7 +162,7 @@ function unused() {
       if (content === true) {
         content = 'yes';
       }
-      push('meta', {name, content});
+      push('meta', {name, content}, `[name="${name}"]`);
     }
   }
 
@@ -220,7 +192,10 @@ function unused() {
     const appleTouchIcons = (maskable.length > 0 ? maskable : icons).map((icon) => {
       // create regular link icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
-      push('link', attr);
+      // This checks for matching "rel" and "sizes". We don't check for the same image file, as
+      // it is used literally by ourselves (and could be set by users for another icon).
+      const querySuffix = `[sizes="${icon['sizes']}"]`;
+      push('link', attr, '[rel="icon"]' + querySuffix);
       if (!isSafariMobile) {
         return;
       }
@@ -232,7 +207,7 @@ function unused() {
 
       // nb. we used to call `removeAttribute('sizes')` here, which crashed iOS 8
       // ... sizes has been supported since iOS 4.2 (!)
-      return push('link', attr);
+      return push('link', attr, '[rel="apple-touch-icon"]' + querySuffix);
     }).filter(Boolean);
 
     // nb. only for iOS, but watch for future CSS rule `@viewport { viewport-fit: cover; }`
