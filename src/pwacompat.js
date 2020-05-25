@@ -140,14 +140,12 @@ function unused() {
   }
 
   /**
-   * Adds an element in the <head> if it's not present already
-   * nb: we check, but this won't override any _earlier_ (in DOM order)
+   * Adds an element in the <head> if it's not present already based on the passed check.
    * @param {string} localName tag name
    * @param {!Object<string>} attr key-value collection of attributes
    * @param {string} check to apply to the tag
    */
   function push(localName, attr, check) {
-    // in case of links, comparing either href or sizes (because it's used for icons too)
     if (getElementInHead(localName + check)) {
       return;
     }
@@ -194,6 +192,8 @@ function unused() {
     const appleTouchIcons = (maskable.length > 0 ? maskable : icons).map((icon) => {
       // create regular link icons as byproduct
       const attr = {'rel': 'icon', 'href': urlFactory(icon['src']), 'sizes': icon['sizes']};
+      // This checks for matching "rel" and "sizes". We don't check for the same image file, as
+      // it is used literally by ourselves (and could be set by users for another icon).
       const querySuffix = `[sizes="${icon['sizes']}"]`;
       push('link', attr, '[rel="icon"]' + querySuffix);
       if (!isSafariMobile) {
