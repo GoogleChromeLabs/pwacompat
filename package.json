@@ -1,6 +1,6 @@
 {
   "name": "pwacompat",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "description": "library to bring Web App Manifest contents to non-compliant browsers",
   "main": "pwacompat.min.js",
   "module": "src/pwacompat.js",
@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^5.2.0",
-    "headless-test": "^1.0.2"
+    "headless-test": "^1.0.2",
+    "mocha": "^5.2.0"
   },
   "resolutions": {
     "**/minimist": "^1.2.5"
