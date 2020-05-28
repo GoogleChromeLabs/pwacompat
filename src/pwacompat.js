@@ -377,8 +377,8 @@ function unused() {
      */
     function renderBothSplash(applicationIcon, done) {
       const s = window.screen;
-      const portrait = splashFor(s.availWidth, s.availHeight, 'portrait', applicationIcon);
-      const landscape = splashFor(s.availHeight, s.availWidth, 'landscape', applicationIcon);
+      const portrait = splashFor(s.width, s.height, 'portrait', applicationIcon);
+      const landscape = splashFor(s.height, s.width, 'landscape', applicationIcon);
 
       // this is particularly egregious setTimeout use, but the .toDataURL() is one of the
       // "bottlenecks" of PWACompat, so don't elongate any single frame more than needed.
