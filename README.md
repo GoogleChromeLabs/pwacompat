@@ -20,7 +20,7 @@ For more on the Web App Manifest, read 📖 [how to add a Web App Manifest and m
   <small><em>PWACompat takes your regular manifest and enhances other browsers</em></small>
 </p>
 
-# ^Best Practice &amp; Caveats
+# Best Practice &amp; Caveats
 
 While PWACompat can generate most icons, meta tags etc that your PWA might need, it's best practice to include at least one `<link rel="icon" ... />`.
 This is standardized and older browsers, along with search engines, may use it from your page to display an icon.
