@@ -167,16 +167,24 @@ function unused() {
   }
 
   /**
-   * @param {{sizes: string}} icon
+   * Pre-process the icon sizes and purpose into a tuple and array.
    */
-  function largestSize(icon) {
-    const sizes = icon.sizes.split(/\s+/g).map((size) => {
+  function normalizeIcon(icon) {
+    const parsedSizes = icon.sizes.split(/\s+/g).map((size) => {
       if (size === 'any') {
         return Infinity;
       }
       return parseInt(size, 10) || 0; // NaN is falsey
     });
-    return Math.max.apply(null, sizes); // don't use ... as Closure inserts additional code
+
+    return {
+      src: icon.src,
+      type: icon.type,
+      sizes: icon.sizes,
+      // Get the largest size from a processed icon.
+      largestSize: Math.max.apply(null, parsedSizes),
+      purpose: icon.purpose ? icon.purpose.split(/\s+/g) : ['any'],
+    }
   }
 
   /**
@@ -184,10 +192,13 @@ function unused() {
    * @param {function(string): string} urlFactory
    */
   function process(manifest, urlFactory) {
-    const icons = manifest['icons'] || [];
-    const maskable = icons.filter((icon) => (icon.purpose || '').includes('maskable'));
-    icons.sort((a, b) => largestSize(b) - largestSize(a));  // largest first
-    maskable.sort((a, b) => largestSize(b) - largestSize(a));
+    // largest first
+    const allIcons = (manifest['icons'] || [])
+      .map(normalizeIcon)
+      .sort((a, b) => b.largestSize - a.largestSize);
+
+    const icons = allIcons.filter((icon) => icon.purpose.indexOf('any') > -1)
+    const maskable = allIcons.filter((icon) => icon.purpose.indexOf('maskable') > -1);
 
     const appleTouchIcons = (maskable.length > 0 ? maskable : icons).map((icon) => {
       // create regular link icons as byproduct
