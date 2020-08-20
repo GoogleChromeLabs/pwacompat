@@ -8,6 +8,8 @@ We recommend including it from a CDN to get the latest version, or [bundling it 
 
 ```html
 <link rel="manifest" href="manifest.webmanifest" />
+<script async src="https://cdn.jsdelivr.net/npm/pwacompat" crossorigin="anonymous"></script>
+<!-- or another CDN -->
 <script async src="https://unpkg.com/pwacompat" crossorigin="anonymous"></script>
 ```
 
