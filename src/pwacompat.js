@@ -184,7 +184,7 @@ function unused() {
       // Get the largest size from a processed icon.
       largestSize: Math.max.apply(null, parsedSizes),
       purpose: icon.purpose ? icon.purpose.split(/\s+/g) : ['any'],
-    }
+    };
   }
 
   /**
@@ -210,8 +210,7 @@ function unused() {
       if (!isSafariMobile) {
         return;
       }
-      const dim = largestSize(icon);
-      if (dim < appleIconSizeMin) {
+      if (icon.largestSize < appleIconSizeMin) {
         return;
       }
       attr['rel'] = 'apple-touch-icon';
