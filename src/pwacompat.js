@@ -210,7 +210,7 @@ function unused() {
       if (!isSafariMobile) {
         return;
       }
-      const dim = largestSize(icon);
+      const dim = icon.largestSize;
       if (dim < appleIconSizeMin) {
         return;
       }
