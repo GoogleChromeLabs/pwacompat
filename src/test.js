@@ -14,6 +14,8 @@
  * the License.
  */
 
+const assert = self.assert;
+
 const sources = new WeakMap();
 window.addEventListener('message', (ev) => {
   const resolve = sources.get(ev.source);
@@ -23,7 +25,14 @@ window.addEventListener('message', (ev) => {
   resolve(ev.data);
 });
 
-function testManifest(manifest, head='') {
+/**
+ * @param {!Object<string, *>} manifest
+ * @param {string=} head
+ * @param {!Object<string, *>} navigatorOverride
+ * @param {number} delay
+ * @return {!Promise<!DocumentFragment}
+ */
+function testManifest(manifest, head='', navigatorOverride={}, delay=25) {
   const rigsource = `
 <!DOCTYPE html>
 <html>
@@ -32,12 +41,19 @@ function testManifest(manifest, head='') {
   ${head}
 </head>
 <body>
-  <script src="${window.location.origin}/src/pwacompat.js"></script>
-  <script>
+  <script type="module" async>
+const navigatorOverride = ${JSON.stringify(navigatorOverride)};
+for (const k in navigatorOverride) {
+  Object.defineProperty(navigator, k, {value: navigatorOverride[k]});
+}
 const ready = new Promise((resolve) => {
+  // const mo = new MutationObserver(() => resolve());
+  // mo.observe(document.head, {childList: true});
+
   window.addEventListener('load', () => {
     // let pwacompat do its work
-    window.setTimeout(resolve, 0);
+    // We have to wait, because there's no single moment we add everything to <head>.
+    window.setTimeout(resolve, ${delay});
   });
 });
 ready.then(() => {
@@ -52,6 +68,7 @@ ready.then(() => {
   window.parent.postMessage(all, '*');
 });
   </script>
+  <script src="${window.location.origin}/src/pwacompat.js" defer></script>
 </body>
 </html>
   `;
@@ -64,7 +81,7 @@ ready.then(() => {
 
   const p = new Promise((resolve, reject) => {
     sources.set(iframe.contentWindow, resolve);
-    window.setTimeout(reject, 200);
+    window.setTimeout(reject, 500);
   });
 
   const cleanup = () => iframe.remove();
@@ -111,7 +128,7 @@ suite('pwacompat', () => {
 
   test('should add meta `mobile-web-app-capable`', async () => {
     const manifest = {
-      display: 'standalone'
+      display: 'standalone',
     };
     const r = await testManifest(manifest);
     assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
@@ -119,7 +136,7 @@ suite('pwacompat', () => {
 
   test('should not add meta `mobile-web-app-capable` if it was present beforehand', async () => {
     const manifest = {
-      display: 'standalone' // pwacompat should add 'meta[name="mobile-web-app-capable"][content="yes"]'
+      display: 'standalone',  // pwacompat should add 'meta[name="mobile-web-app-capable"][content="yes"]'
     };
     const r = await testManifest(manifest, '<meta name="mobile-web-app-capable" content="existing">');
     assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="existing"]'));
@@ -129,9 +146,10 @@ suite('pwacompat', () => {
 
   test('should not add link icon if it was present beforehand', async () => {
     const manifest = {
-      'icons': [{
+      'icons': [
+        {
           'src': 'NEW-192.png',
-          'sizes': '192x192'
+          'sizes': '192x192',
         },
       ],
     };
@@ -140,5 +158,38 @@ suite('pwacompat', () => {
     assert.isNull(r.querySelector('link[rel="icon"][href="NEW-192.png"][sizes="192x192"]'));
   });
 
-  // TODO(samthor): Emulate/force userAgent and other environments to test Edge/iOS.
+  test('iOS splash', async () => {
+    const manifest = {
+      'short_name': 'Test',
+      'icons': [
+        {
+          'src': window.location.origin + '/demo/logo-192.png',
+          'sizes': '192x192',
+        },
+      ],
+      display: 'standalone',
+    };
+
+    const override = {
+      vendor: 'Apple',
+      userAgent: 'Mobile/',
+      standalone: false,
+    };
+
+    // TODO(samthor): delay is just a bit awkward
+    const r = await testManifest(manifest, '', override, 100);
+
+    assert.isNotNull(r.querySelector('meta[name="apple-mobile-web-app-title"]'), 'should have title');
+    assert.isNotNull(r.querySelector('meta[name="apple-mobile-web-app-capable"]'), 'should be capable');
+
+    const images = r.querySelectorAll('link[rel="apple-touch-startup-image"]');
+    assert.lengthOf(images, 2);
+
+    const [portrait, landscape] = images;
+    assert.equal(portrait.media, '(orientation: portrait)');
+    assert.equal(landscape.media, '(orientation: landscape)');
+    // TODO(samthor): check sizes
+  });
+
+  // TODO(samthor): Test Edge and non-iOS environments with overrides.
 });
