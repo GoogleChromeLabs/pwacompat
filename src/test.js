@@ -26,23 +26,30 @@ window.addEventListener('message', (ev) => {
 });
 
 /**
- * @param {!Object<string, *>} manifest
- * @param {string=} head
- * @param {!Object<string, *>} navigatorOverride
- * @param {number} delay
- * @return {!Promise<!DocumentFragment}
+ * @param {!Object<string, *>} options.manifest
+ * @param {!Object<string, *>} options.override
+ * @param {string} options.head
+ * @param {number} options.delay
+ * @return {!Promise<!DocumentFragment>}
  */
-function testManifest(manifest, head='', navigatorOverride={}, delay=25) {
+function testManifest(options) {
+  options = Object.assign({
+    manifest: {},
+    head: '',
+    override: {},
+    delay: 25,
+  }, options);
+
   const rigsource = `
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(manifest))}" />
-  ${head}
+  <link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(options.manifest))}" />
+  ${options.head}
 </head>
 <body>
   <script type="module" async>
-const navigatorOverride = ${JSON.stringify(navigatorOverride)};
+const navigatorOverride = ${JSON.stringify(options.override)};
 for (const k in navigatorOverride) {
   Object.defineProperty(navigator, k, {value: navigatorOverride[k]});
 }
@@ -53,7 +60,7 @@ const ready = new Promise((resolve) => {
   window.addEventListener('load', () => {
     // let pwacompat do its work
     // We have to wait, because there's no single moment we add everything to <head>.
-    window.setTimeout(resolve, ${delay});
+    window.setTimeout(resolve, ${options.delay});
   });
 });
 ready.then(() => {
@@ -106,10 +113,10 @@ suite('pwacompat', () => {
     const manifest = {
       'theme_color': 'red',
     };
-    let r = await testManifest(manifest);
+    let r = await testManifest({manifest});
     assert.isNotNull(r.querySelector('meta[name="theme-color"][content="red"]'));
 
-    r = await testManifest(manifest, '<meta name="theme-color" content="blue" />');
+    r = await testManifest({manifest, head: '<meta name="theme-color" content="blue" />'});
     assert.isNotNull(r.querySelector('meta[name="theme-color"][content="blue"]'));
     assert.isNull(r.querySelector('meta[name="theme-color"][content="red"]'),
         'red should not be created');
@@ -122,7 +129,7 @@ suite('pwacompat', () => {
         {'src': 'logo-128.png', 'sizes': '128x128'},
       ],
     };
-    const r = await testManifest(manifest);
+    const r = await testManifest({manifest});
     assert.isNotNull(r.querySelector('link[rel="icon"][href="logo-128.png"][sizes="128x128"]'));
   });
 
@@ -130,7 +137,7 @@ suite('pwacompat', () => {
     const manifest = {
       display: 'standalone',
     };
-    const r = await testManifest(manifest);
+    const r = await testManifest({manifest});
     assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
   });
 
@@ -138,7 +145,7 @@ suite('pwacompat', () => {
     const manifest = {
       display: 'standalone',  // pwacompat should add 'meta[name="mobile-web-app-capable"][content="yes"]'
     };
-    const r = await testManifest(manifest, '<meta name="mobile-web-app-capable" content="existing">');
+    const r = await testManifest({manifest, head: '<meta name="mobile-web-app-capable" content="existing">'});
     assert.isNotNull(r.querySelector('meta[name="mobile-web-app-capable"][content="existing"]'));
     assert.isNull(r.querySelector('meta[name="mobile-web-app-capable"][content="yes"]'));
     assert.lengthOf(r.querySelectorAll('meta[name="mobile-web-app-capable"]'), 1, 'found only one node');
@@ -153,7 +160,7 @@ suite('pwacompat', () => {
         },
       ],
     };
-    const r = await testManifest(manifest, '<link rel="icon" href="EXISTING-192.png" sizes="192x192">');
+    const r = await testManifest({manifest, head: '<link rel="icon" href="EXISTING-192.png" sizes="192x192">'});
     assert.isNotNull(r.querySelector('link[rel="icon"][href="EXISTING-192.png"][sizes="192x192"]'));
     assert.isNull(r.querySelector('link[rel="icon"][href="NEW-192.png"][sizes="192x192"]'));
   });
@@ -167,7 +174,8 @@ suite('pwacompat', () => {
           'sizes': '192x192',
         },
       ],
-      display: 'standalone',
+      'background_color': 'red',
+      'display': 'standalone',
     };
 
     const override = {
@@ -176,8 +184,7 @@ suite('pwacompat', () => {
       standalone: false,
     };
 
-    // TODO(samthor): delay is just a bit awkward
-    const r = await testManifest(manifest, '', override, 100);
+    const r = await testManifest({manifest, override, delay: 100});
 
     assert.isNotNull(r.querySelector('meta[name="apple-mobile-web-app-title"]'), 'should have title');
     assert.isNotNull(r.querySelector('meta[name="apple-mobile-web-app-capable"]'), 'should be capable');
@@ -186,9 +193,34 @@ suite('pwacompat', () => {
     assert.lengthOf(images, 2);
 
     const [portrait, landscape] = images;
-    assert.equal(portrait.media, '(orientation: portrait)');
-    assert.equal(landscape.media, '(orientation: landscape)');
-    // TODO(samthor): check sizes
+    assert.strictEqual(portrait.media, '(orientation: portrait)');
+    assert.strictEqual(landscape.media, '(orientation: landscape)');
+
+    assert.notEqual(portrait.href, landscape.href);
+
+    const portraitImage = new Image();
+    portraitImage.src = portrait.href;
+
+    const landscapeImage = new Image();
+    landscapeImage.src = landscape.href;
+
+    await Promise.resolve();  // wait for images to be ready
+
+    assert.notStrictEqual(portraitImage.naturalWidth, 0);
+    assert.strictEqual(portraitImage.naturalWidth, landscapeImage.naturalHeight);
+    assert.strictEqual(portraitImage.naturalHeight, landscapeImage.naturalWidth);
+
+    assert.strictEqual(portraitImage.naturalWidth, window.screen.width * window.devicePixelRatio);
+    assert.strictEqual(landscapeImage.naturalHeight, window.screen.width * window.devicePixelRatio);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+
+    context.drawImage(portraitImage, 0, 0);
+    const pixel = context.getImageData(0, 0, 1, 1);
+    assert.deepStrictEqual(pixel.data, new Uint8ClampedArray([255, 0, 0, 255]), 'background should be red');
   });
 
   // TODO(samthor): Test Edge and non-iOS environments with overrides.
