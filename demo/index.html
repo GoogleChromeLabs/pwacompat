@@ -22,11 +22,11 @@
     }
   </style>
   <title>PWA Compat</title>
-  <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="blue" />
-  <meta name="theme-color" content="red" />
-  <script src="../pwacompat.min.js"></script>
+  <meta name="msapplication-navbutton-color" content="blue" />
+  <script src="../pwacompat.min.js" async></script>
 </head>
 <body>
 
@@ -36,7 +36,7 @@
   It uses the uncompiled file, for testing.
 </p>
 <p>
-  Links to <a href="other.html">local page</a>, <a href="nocode.html">page without PWA Compat</a> or an <a href="https://google.com">external site</a>.
+  Links to <a href="other.html">local page</a>, <a href="nocode.html">page without PWA Compat</a> or an <a href="https://google.com" target="_blank" rel="noopener noreferrer">external site</a>.
 </p>
 <p>
   <a href="#hash1">Change Hash 1</a>

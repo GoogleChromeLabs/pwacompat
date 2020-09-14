@@ -223,5 +223,31 @@ suite('pwacompat', () => {
     assert.deepStrictEqual(pixel.data, new Uint8ClampedArray([255, 0, 0, 255]), 'background should be red');
   });
 
+  test('skip for installed iOS', async () => {
+    const manifest = {
+      'short_name': 'Test',
+      'icons': [
+        {
+          'src': window.location.origin + '/demo/logo-192.png',
+          'sizes': '192x192',
+        },
+      ],
+      'display': 'standalone',
+    };
+
+    const override = {
+      vendor: 'Apple',
+      userAgent: 'Mobile/',
+      standalone: true,
+    };
+
+    const r = await testManifest({manifest, override, delay: 100});
+    const all = r.querySelectorAll('*');
+    assert.lengthOf(all, 1, 'should only have manifest itself');
+    assert.strictEqual(all[0].rel, 'manifest');
+
+    // This basically confirms that nothing else is added and we bail out early.
+  });
+
   // TODO(samthor): Test Edge and non-iOS environments with overrides.
 });
