@@ -17,13 +17,18 @@
 <html lang="en">
 <head>
   <title>Other &mdash; PWA Compat</title>
-  <meta name="viewport" content="initial-scale=1 viewport-fit=cover">
-  <link rel="manifest" href="./manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="manifest" href="./manifest.json">
   <script src="../pwacompat.min.js"></script>
 
   <script>
     if (navigator.serviceWorker) {
       navigator.serviceWorker.register('./sw.js')
+        .catch(function(error) {
+          console.error('Service worker registration failed:', error);
+        });
+    } else {
+      console.warn('Service worker is not supported in this browser.');
     }
   </script>
   <style>
@@ -32,10 +37,8 @@
       background: #ff0;
       padding: 0;
       margin: 0;
-      overflow: visible;
     }
     html {
-      overflow: visible;
       background: #00f;
       margin: 0;
       padding: 0;
@@ -47,8 +50,6 @@
   </style>
 </head>
 <body>
-
-
 <p>
   Different page for the PWA Compat Test.
   This page registers a zero Service Worker.
@@ -56,6 +57,5 @@
 <p>
   Link back to the <a href="index.html">starter page</a>. <a href="other.html">Reload</a>
 </p>
-
 </body>
 </html>
