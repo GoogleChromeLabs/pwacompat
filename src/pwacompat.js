@@ -52,6 +52,8 @@ function unused() {
   const isEdgePWA = (typeof Windows !== 'undefined');
 
   let manifestEl;  // we need this later, not just for JSON
+  let manifestIdEl;
+
   let internalStorage;
   try {
     internalStorage = sessionStorage;
@@ -73,6 +75,25 @@ function unused() {
     }
   }
 
+  // Function to generate an SHA-256 hash
+  async function generateHash(data) {
+    // Convert the data string to a byte array
+    const encoder = new TextEncoder();
+    const buffer = encoder.encode(data);
+
+    try {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  
+      return hashHex;
+    } catch (error) {
+      console.error('Error generating MD5 hash:', error);
+      throw error;
+    }
+  }
+
   /**
    * @param {string} k
    * @param {string=} v
@@ -86,15 +107,19 @@ function unused() {
     return internalStorage[key];
   }
 
-  function setup() {
+  async function setup() {
     manifestEl = getElementInHead('link[rel="manifest"]');
+    manifestIdEl = getElementInHead('meta[name="pwacompat-manifest-id"]'); /* Get unique identifier for internal storage (if exist/not required) */
+    
     const manifestHref = manifestEl ? manifestEl.href : '';
     if (!manifestHref) {
       throw `can't find <link rel="manifest" href=".." />'`;
     }
 
     const hrefFactory = buildHrefFactory([manifestHref, location]);
-    const storedResponse = store('manifest');
+    const manifestId = manifestIdEl ? '_' + await generateHash(manifestIdEl.content) : '';
+
+    const storedResponse = store('manifest' + manifestId);
     if (storedResponse) {
       try {
         const data = /** @type {!Object<string, *>} */ (JSON.parse(storedResponse));
@@ -115,7 +140,7 @@ function unused() {
     xhr.onload = () => {
       try {
         const data = /** @type {!Object<string, *>} */ (JSON.parse(xhr.responseText));
-        store('manifest', xhr.responseText);
+        store('manifest' + manifestId, xhr.responseText);
         process(data, hrefFactory);
       } catch (err) {
         console.warn('PWACompat error', err);
@@ -191,7 +216,8 @@ function unused() {
    * @param {!Object<string, (string|*)>} manifest
    * @param {function(string): string} urlFactory
    */
-  function process(manifest, urlFactory) {
+  async function process(manifest, urlFactory) {
+    const manifestId = manifestIdEl ? '_' + await generateHash(manifestIdEl.content) : '';
     // largest first
     const allIcons = (manifest['icons'] || [])
       .map(normalizeIcon)
@@ -362,7 +388,7 @@ function unused() {
     }
 
     // fetch previous (session) iOS image updates
-    const rendered = store('iOS');
+    const rendered = store('iOS' + manifestId);
     if (!debug && rendered) {
       try {
         const prev = /** @type {!Object<string, string>} */ (JSON.parse(rendered));
@@ -427,7 +453,7 @@ function unused() {
 
     // write the update to sessionStorage
     function saveUpdate() {
-      store('iOS', JSON.stringify(update));
+      store('iOS' + manifestId, JSON.stringify(update));
     }
 
     // called repeatedly until a valid icon is found

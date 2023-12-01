@@ -69,6 +69,15 @@ This [isn't a problem with PWACompat](https://github.com/GoogleChromeLabs/pwacom
 PWACompat uses `window.sessionStorage` to cache your site's manifest (and on iOS, any updated icons and generated splash screens).
 This expires after a user navigates away from your page or closes their tab.
 
+⚠️ Please note : If you need to display a PWA whose icons are dynamic (for example a profil page with its avatar different from one profil to another), please enter a meta `pwacompat-manifest-id` tag with a unique identifier.
+
+```html
+<meta name="pwacompat-manifest-id" content="1124d9e8-6266-4bcf-8035-37a02ba75c69" />
+```
+
+Otherwise you will always have the same information between 2 tabs even if the content is different.
+Thus the key in session will be personalized with the identifier.
+
 # Details
 
 What does PWACompat actually do?
